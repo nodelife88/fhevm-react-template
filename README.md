@@ -1,37 +1,37 @@
 # Confidential Chat FE (Next.js)
 
-Ứng dụng frontend cho Confidential Chat, xây dựng với Next.js 15, React 19, Tailwind CSS v4 và shadcn/ui (Radix UI). Tối ưu cho phát triển nhanh, dễ mở rộng, và triển khai lên Vercel.
+Frontend application for Confidential Chat, built with Next.js 15, React 19, Tailwind CSS v4, and shadcn/ui (Radix UI). Optimized for fast development, easy extension, and deployment to Vercel.
 
 ## Stack
 
-- Next.js 15 (`app/` router)
+- Next.js 15 (App Router, `app/` directory)
 - React 19
 - TypeScript (strict)
 - Tailwind CSS v4 (`@tailwindcss/postcss`)
 - shadcn/ui + Radix UI (`components/ui/*`)
 - Vercel Analytics
 
-## Yêu cầu
+## Requirements
 
-- Node.js ≥ 18 (khuyến nghị 20+)
-- npm hoặc pnpm (repo có `pnpm-lock.yaml`, nhưng script dùng npm — có thể dùng pnpm bình thường)
+- Node.js ≥ 18 (20+ recommended)
+- npm or pnpm (repo includes `pnpm-lock.yaml`, scripts use npm — pnpm works as well)
 
-## Cài đặt
+## Install
 
 ```bash
-# bằng npm
+# with npm
 npm install
 
-# (tuỳ chọn) bằng pnpm
+# (optional) with pnpm
 pnpm install
 ```
 
-## Chạy dev
+## Develop
 
 ```bash
 npm run dev
 ```
-Mở URL hiển thị trên terminal (thường là `http://localhost:3000`).
+Open the URL printed in the terminal (typically `http://localhost:3000`).
 
 ## Build & Start (production)
 
@@ -40,23 +40,23 @@ npm run build
 npm start
 ```
 
-Lưu ý: `next.config.mjs` hiện tắt chặn lỗi trong build để không fail CI:
+Note: `next.config.mjs` currently disables build-time failures for faster iteration:
 - `eslint.ignoreDuringBuilds = true`
 - `typescript.ignoreBuildErrors = true`
 
 ## Scripts
 
-- `dev`: chạy server phát triển
-- `build`: build ứng dụng
-- `start`: chạy server production
-- `lint`: chạy linter (Next.js ESLint)
+- `dev`: start the development server
+- `build`: build the application
+- `start`: start the production server
+- `lint`: run ESLint (Next.js)
 
-Ví dụ:
+Example:
 ```bash
 npm run lint
 ```
 
-## Cấu trúc thư mục chính
+## Directory Structure
 
 ```
 confidential-chat-fe/
@@ -67,34 +67,34 @@ confidential-chat-fe/
     messages/
       page.tsx
   components/
-    ui/                 # các thành phần shadcn/ui (Radix)
-    *.tsx               # thành phần tính năng: chat, modal, layout...
+    ui/                 # shadcn/ui (Radix) components
+    *.tsx               # feature components: chat, modals, layout, etc.
   hooks/
   lib/
   public/
   styles/
-    globals.css         # (nếu dùng, tuỳ dự án)
+    globals.css         # (if used, depends on your setup)
   package.json
   tsconfig.json
   next.config.mjs
   postcss.config.mjs
-  components.json       # cấu hình shadcn/ui, alias, tailwind
+  components.json       # shadcn/ui config, aliases, tailwind
 ```
 
-### Alias & shadcn/ui
+### Aliases & shadcn/ui
 
-`components.json` định nghĩa alias:
+`components.json` defines aliases:
 - `components` → `@/components`
 - `ui` → `@/components/ui`
 - `utils` → `@/lib/utils`
 - `lib` → `@/lib`
 - `hooks` → `@/hooks`
 
-Thêm component UI mới (theo chuẩn shadcn/ui): đặt file trong `components/ui/` và import qua `@/components/ui/...`.
+Add new UI components under `components/ui/` and import via `@/components/ui/...`.
 
 ## Tailwind CSS v4
 
-Cấu hình PostCSS:
+PostCSS config:
 ```js
 // postcss.config.mjs
 export default {
@@ -103,49 +103,49 @@ export default {
   },
 }
 ```
-Styles toàn cục: `app/globals.css`. Đảm bảo đã import trong `app/layout.tsx`.
+Global styles: `app/globals.css` (ensure it is imported in `app/layout.tsx`).
 
 ## TypeScript
 
-`tsconfig.json` bật `strict`, `paths` alias `@/*` → `./*`. Module resolution dùng `bundler` (phù hợp Next 15).
+`tsconfig.json` enables `strict` and sets `@/*` → `./*` path alias. Module resolution uses `bundler` (fits Next 15).
 
-## Ảnh & tối ưu hoá
+## Images & optimization
 
-`next.config.mjs` đặt `images.unoptimized = true` để tránh yêu cầu tối ưu hoá ảnh runtime (hữu ích khi deploy tĩnh hoặc môi trường chưa cấu hình Image Optimization).
+`next.config.mjs` sets `images.unoptimized = true` to skip runtime image optimization (useful for static deploys or environments without Image Optimization configured).
 
-## Môi trường (ENV)
+## Environment Variables
 
-FE thường không cần secret. Nếu cần biến public, sử dụng tiền tố `NEXT_PUBLIC_` để có thể truy cập ở client.
+Frontend usually should not use secrets. For public variables, prefix with `NEXT_PUBLIC_` so they are available on the client.
 
-Ví dụ:
+Example:
 ```bash
 NEXT_PUBLIC_API_BASE_URL=http://localhost:4000
 ```
-Sử dụng trong code: `process.env.NEXT_PUBLIC_API_BASE_URL`.
+In code: `process.env.NEXT_PUBLIC_API_BASE_URL`.
 
-## Deploy (Vercel đề xuất)
+## Deploy (Vercel recommended)
 
-1. Push repo lên GitHub/GitLab/Bitbucket.
-2. Import project vào Vercel, chọn framework Next.js.
-3. Thiết lập biến môi trường (nếu có), build command mặc định.
-4. Deploy. Vercel sẽ tự dùng `next start` cho production.
+1. Push the repo to GitHub/GitLab/Bitbucket.
+2. Import the project to Vercel, select Next.js framework.
+3. Configure environment variables (if any), keep default build command.
+4. Deploy. Vercel will run `next start` for production.
 
-## Phát triển giao diện
+## UI Development Notes
 
-- Thành phần tái sử dụng nằm ở `components/ui/*` (shadcn/ui).
-- Thành phần nghiệp vụ: `components/*` còn lại (ví dụ: `message-composer.tsx`, `messaging-layout.tsx`).
-- Trang chính: `app/page.tsx`; trang tin nhắn: `app/messages/page.tsx`.
+- Reusable primitives live in `components/ui/*` (shadcn/ui).
+- Feature components live in `components/*` (e.g., `message-composer.tsx`, `messaging-layout.tsx`).
+- Main page: `app/page.tsx`; messages page: `app/messages/page.tsx`.
 
-## Ghi chú chất lượng
+## Quality Notes
 
-- Hiện build bỏ qua lỗi ESLint/TypeScript để tăng tốc; khi ổn định, cân nhắc bật lại để siết chất lượng.
-- Giữ tên file/component rõ ràng, dễ tìm kiếm.
+- Build currently ignores ESLint/TypeScript errors for speed; once stable, consider enabling failures to improve quality.
+- Keep component/file names clear and discoverable.
 
-## Vấn đề thường gặp
+## Troubleshooting
 
-- Sai phiên bản Node: kiểm tra `node -v` (>=18).
-- CSS không áp dụng: chắc chắn đã import `app/globals.css` và cấu hình PostCSS đúng.
-- Lỗi đường dẫn import: xác minh alias `@/*` trong `tsconfig.json` trùng với cấu trúc thư mục.
+- Node version mismatch: check `node -v` (>= 18).
+- CSS not applied: ensure `app/globals.css` is imported and PostCSS config is correct.
+- Import path errors: verify `@/*` alias in `tsconfig.json` matches your folder structure.
 
 ---
-Nếu bạn muốn bổ sung hướng dẫn kết nối BE hoặc biến môi trường cụ thể, cho mình endpoint và mình cập nhật phần ENV + data flow chi tiết.
+If you want to add BE integration details or specific env variables, share the API endpoints and I’ll update the ENV and data flow sections accordingly.
