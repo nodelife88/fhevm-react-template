@@ -1,105 +1,151 @@
-# Confidential Chat
+# Confidential Chat FE (Next.js)
 
-A private, developer-friendly chat application focused on security, local control, and extensibility.
+Ứng dụng frontend cho Confidential Chat, xây dựng với Next.js 15, React 19, Tailwind CSS v4 và shadcn/ui (Radix UI). Tối ưu cho phát triển nhanh, dễ mở rộng, và triển khai lên Vercel.
 
-## Overview
+## Stack
 
-Confidential Chat keeps sensitive conversations local-first and configurable. It supports pluggable model providers and storage backends with a simple developer experience for extending prompts, tools, and UI components.
+- Next.js 15 (`app/` router)
+- React 19
+- TypeScript (strict)
+- Tailwind CSS v4 (`@tailwindcss/postcss`)
+- shadcn/ui + Radix UI (`components/ui/*`)
+- Vercel Analytics
 
-## Quick Start
+## Yêu cầu
 
-1. Install dependencies:
+- Node.js ≥ 18 (khuyến nghị 20+)
+- npm hoặc pnpm (repo có `pnpm-lock.yaml`, nhưng script dùng npm — có thể dùng pnpm bình thường)
+
+## Cài đặt
+
 ```bash
+# bằng npm
 npm install
+
+# (tuỳ chọn) bằng pnpm
+pnpm install
 ```
 
-2. Create a `.env` with your config (see examples below), then start the dev server:
+## Chạy dev
+
 ```bash
 npm run dev
 ```
+Mở URL hiển thị trên terminal (thường là `http://localhost:3000`).
 
-3. Build and run for production:
+## Build & Start (production)
+
 ```bash
 npm run build
 npm start
 ```
 
-## Configuration
-
-Create a `.env` in the repo root. Common variables:
-```bash
-# model providers
-OPENAI_API_KEY=your_key_here
-AZURE_OPENAI_API_KEY=your_key_here
-AZURE_OPENAI_ENDPOINT=https://your-endpoint.openai.azure.com/
-
-# storage / database (examples)
-DATABASE_URL=postgres://user:pass@host:5432/dbname
-REDIS_URL=redis://localhost:6379
-
-# app
-PORT=3000
-NODE_ENV=development
-```
-If available, copy from sample:
-```bash
-cp .env.example .env
-```
+Lưu ý: `next.config.mjs` hiện tắt chặn lỗi trong build để không fail CI:
+- `eslint.ignoreDuringBuilds = true`
+- `typescript.ignoreBuildErrors = true`
 
 ## Scripts
 
-Check `package.json` for available scripts. Common ones:
-- dev: start the development server
-- build: compile/build the application
-- start: run the production server
-- lint: run linters
-- test: run tests
+- `dev`: chạy server phát triển
+- `build`: build ứng dụng
+- `start`: chạy server production
+- `lint`: chạy linter (Next.js ESLint)
 
-Example:
+Ví dụ:
 ```bash
 npm run lint
 ```
 
-## Project Structure (typical)
+## Cấu trúc thư mục chính
 
 ```
-/ (repo root)
-  README.md
+confidential-chat-fe/
+  app/
+    globals.css
+    layout.tsx
+    page.tsx
+    messages/
+      page.tsx
+  components/
+    ui/                 # các thành phần shadcn/ui (Radix)
+    *.tsx               # thành phần tính năng: chat, modal, layout...
+  hooks/
+  lib/
+  public/
+  styles/
+    globals.css         # (nếu dùng, tuỳ dự án)
   package.json
-  .env.example
-  src/
-    server/           # API / server logic
-    client/           # UI / frontend
-    lib/              # shared utilities
-    models/           # provider integrations, model configs
-    storage/          # DB / vector / file adapters
+  tsconfig.json
+  next.config.mjs
+  postcss.config.mjs
+  components.json       # cấu hình shadcn/ui, alias, tailwind
 ```
 
-## Extending
+### Alias & shadcn/ui
 
-- Add tools/agents under `src/lib` or dedicated directories
-- Add a provider by implementing an adapter and wiring configuration
-- Add a storage backend via an adapter under `src/storage`, configured via env
+`components.json` định nghĩa alias:
+- `components` → `@/components`
+- `ui` → `@/components/ui`
+- `utils` → `@/lib/utils`
+- `lib` → `@/lib`
+- `hooks` → `@/hooks`
 
-## Security
+Thêm component UI mới (theo chuẩn shadcn/ui): đặt file trong `components/ui/` và import qua `@/components/ui/...`.
 
-- Prefer local/self-hosted providers for sensitive data
-- Keep API keys in `.env` and never commit them
-- Review network egress and redact PII before sending to third parties
+## Tailwind CSS v4
 
-## Troubleshooting
+Cấu hình PostCSS:
+```js
+// postcss.config.mjs
+export default {
+  plugins: {
+    '@tailwindcss/postcss': {},
+  },
+}
+```
+Styles toàn cục: `app/globals.css`. Đảm bảo đã import trong `app/layout.tsx`.
 
-- Ensure required env vars are set
-- Reinstall deps: `rm -rf node_modules && npm install`
-- Use Node.js >= 18
-- Check terminal logs for stack traces
+## TypeScript
 
-## License
+`tsconfig.json` bật `strict`, `paths` alias `@/*` → `./*`. Module resolution dùng `bundler` (phù hợp Next 15).
 
-Proprietary. All rights reserved. Update this section if needed.
+## Ảnh & tối ưu hoá
 
-## Contributing
+`next.config.mjs` đặt `images.unoptimized = true` để tránh yêu cầu tối ưu hoá ảnh runtime (hữu ích khi deploy tĩnh hoặc môi trường chưa cấu hình Image Optimization).
 
-- Open an issue for proposals or bugs
-- Follow code style and conventions
-- Include tests when adding functionality
+## Môi trường (ENV)
+
+FE thường không cần secret. Nếu cần biến public, sử dụng tiền tố `NEXT_PUBLIC_` để có thể truy cập ở client.
+
+Ví dụ:
+```bash
+NEXT_PUBLIC_API_BASE_URL=http://localhost:4000
+```
+Sử dụng trong code: `process.env.NEXT_PUBLIC_API_BASE_URL`.
+
+## Deploy (Vercel đề xuất)
+
+1. Push repo lên GitHub/GitLab/Bitbucket.
+2. Import project vào Vercel, chọn framework Next.js.
+3. Thiết lập biến môi trường (nếu có), build command mặc định.
+4. Deploy. Vercel sẽ tự dùng `next start` cho production.
+
+## Phát triển giao diện
+
+- Thành phần tái sử dụng nằm ở `components/ui/*` (shadcn/ui).
+- Thành phần nghiệp vụ: `components/*` còn lại (ví dụ: `message-composer.tsx`, `messaging-layout.tsx`).
+- Trang chính: `app/page.tsx`; trang tin nhắn: `app/messages/page.tsx`.
+
+## Ghi chú chất lượng
+
+- Hiện build bỏ qua lỗi ESLint/TypeScript để tăng tốc; khi ổn định, cân nhắc bật lại để siết chất lượng.
+- Giữ tên file/component rõ ràng, dễ tìm kiếm.
+
+## Vấn đề thường gặp
+
+- Sai phiên bản Node: kiểm tra `node -v` (>=18).
+- CSS không áp dụng: chắc chắn đã import `app/globals.css` và cấu hình PostCSS đúng.
+- Lỗi đường dẫn import: xác minh alias `@/*` trong `tsconfig.json` trùng với cấu trúc thư mục.
+
+---
+Nếu bạn muốn bổ sung hướng dẫn kết nối BE hoặc biến môi trường cụ thể, cho mình endpoint và mình cập nhật phần ENV + data flow chi tiết.
