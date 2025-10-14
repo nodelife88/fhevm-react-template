@@ -9,6 +9,10 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
+  experimental: {
+    esmExternals: 'loose'
+  },
+  transpilePackages: ['@fhevm-sdk'],
 }
 
 export default nextConfig

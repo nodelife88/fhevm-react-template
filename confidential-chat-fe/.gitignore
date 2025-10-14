@@ -2,7 +2,7 @@
 
 # dependencies
 /node_modules
-
+/lib/fhevm-sdk/node_modules
 # next.js
 /.next/
 /out/

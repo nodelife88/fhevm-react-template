@@ -281,7 +281,7 @@ export async function fetchMessages(
           timestamp: Number(header.timestamp) * 1000,
           isRead: false, // FHE encrypted, would need decryption
           isDeleted: header.isDeleted,
-          isEncrypted: true,
+      isEncrypted: true,
         })
       } catch (error) {
         console.error(`[v0] Error fetching message ${msgId}:`, error)
@@ -458,7 +458,7 @@ export async function decryptWithFHEVM(encryptedData: string, instance?: any): P
   if (instance) {
     try {
       // In real implementation, this would use FHEVM decryption
-      // For now, return a placeholder
+  // For now, return a placeholder
       return "Decrypted message content"
     } catch (error) {
       console.error("FHEVM decryption failed:", error)
