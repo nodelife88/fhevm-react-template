@@ -2,10 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Removed @import for RainbowKit CSS as it fails to load in v0 environment */
-/* Custom RainbowKit styles are defined below using CSS variables */
-
-/* Custom RainbowKit styles to match app theme */
 [data-rk] {
   --rk-colors-accentColor: hsl(45 100% 85%);
   --rk-colors-accentColorForeground: hsl(0 0% 8%);
@@ -37,7 +33,6 @@
   --rk-colors-standby: hsl(0 0% 60%);
 }
 
-/* Added Tailwind v4 theme configuration with font families */
 @theme inline {
   --font-sans: "Geist", "Geist Fallback", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "Geist Mono", "Geist Mono Fallback", ui-monospace, monospace;
@@ -93,7 +88,6 @@
   }
 }
 
-/* Legacy Zama styles */
 .zama-bg {
   background-color: hsl(var(--primary));
 }

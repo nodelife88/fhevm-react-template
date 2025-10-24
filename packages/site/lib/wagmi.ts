@@ -12,7 +12,6 @@ import { getBestWebSocketUrl, RPC_CONFIG } from "./config";
 
 const projectId = process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || "demo";
 
-// Define a custom wallet list WITHOUT Coinbase Wallet
 const connectors = connectorsForWallets(
   [
     {

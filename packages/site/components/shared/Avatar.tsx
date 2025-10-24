@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { createAvatar } from "@dicebear/core";
 import { dylan } from "@dicebear/collection";
 
@@ -9,8 +9,10 @@ interface CustomAvatarProps {
 }
 
 const Avatar: React.FC<CustomAvatarProps> = ({ name, src, size = 40 }) => {
+  const [imageError, setImageError] = useState(false);
+
   function onError(e: React.SyntheticEvent<HTMLImageElement, Event>): void {
-    e.currentTarget.style.display = "none";
+    setImageError(true);
   }
 
   const avatarSvg = createAvatar(dylan, {
@@ -18,12 +20,14 @@ const Avatar: React.FC<CustomAvatarProps> = ({ name, src, size = 40 }) => {
     size,
   }).toDataUri();
 
+  const shouldShowCustomImage = src && !imageError;
+
   return (
     <div
       className="relative flex items-center justify-center rounded-full overflow-hidden bg-gray-200"
       style={{ width: size, height: size }}
     >
-      {src ? (
+      {shouldShowCustomImage ? (
         <img
           src={src}
           alt={name}

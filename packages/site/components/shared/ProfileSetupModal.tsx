@@ -24,7 +24,6 @@ export const ProfileSetupModal: React.FC<ProfileSetupModalProps> = ({
   const [name, setName] = useState("");
   const { disconnect } = useDisconnect();
 
-  // Initialize contracts
   useFHESealrContracts();
 
   const { contractIsReady } = useFHESealrStore();
@@ -48,12 +47,10 @@ export const ProfileSetupModal: React.FC<ProfileSetupModalProps> = ({
 
     try {
       await createProfile(name);
-      // Only redirect if profile creation was successful
       router.push('/chat');
       onClose();
     } catch (err) {
       console.error('Error creating profile:', err);
-      // Don't redirect on error - user rejected transaction or other error occurred
       setError('Failed to create profile. Please try again.');
     }
   };
@@ -64,7 +61,6 @@ export const ProfileSetupModal: React.FC<ProfileSetupModalProps> = ({
       onClose();
     } catch (error) {
       console.error("Error during disconnect:", error);
-      // Still close modal even if disconnect fails
       onClose();
     }
   };

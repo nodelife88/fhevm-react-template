@@ -13,7 +13,6 @@ export const useProfileCheck = () => {
   const [showProfileSetup, setShowProfileSetup] = useState(false)
   const [isChecking, setIsChecking] = useState(false)
 
-  // Initialize contracts
   useFHESealrContracts()
 
   const { contractIsReady } = useFHESealrStore()
@@ -35,17 +34,14 @@ export const useProfileCheck = () => {
         console.log("Profile result:", userProfile)
 
         if (userProfile) {
-          // User has profile, redirect to chat
           console.log("Profile found, redirecting to chat")
           router.push("/chat")
         } else {
-          // User needs to create profile
           console.log("No profile found, showing setup modal")
           setShowProfileSetup(true)
         }
       } catch (err) {
         console.error("Error checking profile:", err)
-        // On error, show profile setup as fallback - don't redirect
         setShowProfileSetup(true)
       } finally {
         setIsChecking(false)

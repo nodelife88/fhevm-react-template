@@ -82,7 +82,6 @@ const CreateGroupModal: React.FC<CreateGroupModalProps> = ({ isOpen, onClose }) 
         </DialogHeader>
 
         <div className="space-y-4 px-1">
-          {/* Group Name Input */}
           <div className="space-y-2">
             <Label htmlFor="groupName" className="text-sm font-medium">Group Name</Label>
             <Input
@@ -94,7 +93,6 @@ const CreateGroupModal: React.FC<CreateGroupModalProps> = ({ isOpen, onClose }) 
             />
           </div>
 
-          {/* Selected Members */}
           {selectedMembers.length > 0 && (
             <div className="space-y-2">
               <Label className="text-sm font-medium">Selected Members ({selectedMembers.length})</Label>
@@ -123,7 +121,6 @@ const CreateGroupModal: React.FC<CreateGroupModalProps> = ({ isOpen, onClose }) 
             </div>
           )}
 
-          {/* Search Members */}
           <div className="space-y-2">
             <Label className="text-sm font-medium">Add Members</Label>
             {selectedMembers.length === 0 && (
@@ -141,7 +138,6 @@ const CreateGroupModal: React.FC<CreateGroupModalProps> = ({ isOpen, onClose }) 
               />
             </div>
 
-            {/* Member List */}
             {searchQuery && (
               <div className="max-h-40 sm:max-h-48 overflow-y-auto border rounded-lg">
                 {filteredProfiles.map((user) => (
@@ -171,7 +167,6 @@ const CreateGroupModal: React.FC<CreateGroupModalProps> = ({ isOpen, onClose }) 
             )}
           </div>
 
-          {/* Create Button */}
           <div className="flex flex-col sm:flex-row gap-2 pt-4">
             <Button
               variant="outline"

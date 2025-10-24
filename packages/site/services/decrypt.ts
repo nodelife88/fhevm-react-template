@@ -46,7 +46,6 @@ async function persistConversationCache(conversationId: string, cache: Map<strin
       updatedAt: Date.now(),
     });
   } catch {
-    // Ignore persistence errors
   }
 }
 

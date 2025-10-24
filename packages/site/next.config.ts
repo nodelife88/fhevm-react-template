@@ -21,7 +21,6 @@ const nextConfig: NextConfig = {
   },
 
   headers() {
-    // Required by FHEVM
     return Promise.resolve([
       {
         source: "/",

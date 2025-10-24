@@ -57,7 +57,6 @@ export const useFHESealrLoginStore = create<FHESealrLoginStore>(
         await tx.wait();
       } catch (err: any) {
         console.error("Create profile failed", err);
-        // Re-throw the error so the calling component can handle it
         throw err;
       } finally {
         set({ loading: false });

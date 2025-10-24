@@ -40,7 +40,6 @@ const ChatHeader: React.FC = () => {
     getBalance()
   }, [ethersSigner])
 
-  // Load profiles when component mounts
   useEffect(() => {
     if (address) {
       getProfiles()
@@ -55,10 +54,8 @@ const ChatHeader: React.FC = () => {
 
   async function handleAddFriend(userProfile: UserProfile): Promise<void> {
     try {
-      // Use getOrCreateDirectConversation to get/create conversation ID
       const conversationId = await getOrCreateDirectConversation(userProfile.wallet);
       
-      // Create conversation object with the returned ID
       const convo: ConversationType = {
         id: conversationId,
         receiverName: userProfile.name,
@@ -71,12 +68,10 @@ const ChatHeader: React.FC = () => {
         members: [address || "", userProfile.wallet] // 2 members for direct chat
       }
 
-      // Check if conversation already exists in local state
       const existingConvo = checkConversationExists(conversations, userProfile.wallet);
       if (!existingConvo) {
         addConversation(convo);
       } else {
-        // Update existing conversation with new data
         convo.id = existingConvo.id;
       }
 
@@ -86,7 +81,6 @@ const ChatHeader: React.FC = () => {
       setIsFocused(false);
     } catch (error) {
       console.error("Error creating direct conversation:", error);
-      // Fallback to old behavior if contract call fails
       const convo: ConversationType = {
         id: 0,
         receiverName: userProfile.name,
@@ -110,7 +104,6 @@ const ChatHeader: React.FC = () => {
     }
   }
 
-  // Debounced search handler
   const handleSearch = useCallback((q: string) => {
     setQuery(q)
     
@@ -129,7 +122,6 @@ const ChatHeader: React.FC = () => {
       push("/");
     } catch (error) {
       console.error("Error during logout:", error);
-      // Fallback to hard redirect
       push("/");
     }
   };
@@ -138,7 +130,6 @@ const ChatHeader: React.FC = () => {
     if (!address) push("/")
   }, [address, push])
 
-  // Cleanup debounce timeout on unmount
   useEffect(() => {
     return () => {
       if (debounceTimeoutRef.current) {
@@ -175,7 +166,6 @@ const ChatHeader: React.FC = () => {
               value={query}
               onFocus={() => {
                 setIsFocused(true)
-                // Refresh profiles when focusing on search
                 if (profiles.length === 0) {
                   getProfiles()
                 }

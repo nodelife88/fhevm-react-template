@@ -10,7 +10,6 @@ import type { Conversation as ConversationType } from "@/types"
 import { useRainbowKitEthersSigner } from "@/hooks/useRainbowKitEthersSigner"
 import { useFHESealrConversationStore } from "@/store/useFHESealrConversationStore"
 
-// Memoized search input component to prevent unnecessary re-renders
 const SearchInput = memo(
   ({
     search,
@@ -52,7 +51,6 @@ const ChatBotConversationList: React.FC = () => {
   const [debouncedSearch, setDebouncedSearch] = useState("")
   const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
-  // Debounce search input to prevent excessive filtering
   const handleSearchChange = useCallback((value: string) => {
     setSearch(value)
 
@@ -65,7 +63,6 @@ const ChatBotConversationList: React.FC = () => {
     }, 100) // 100ms debounce delay for faster response
   }, [])
 
-  // Memoized clear handler
   const handleClearSearch = useCallback(() => {
     setSearch("")
     setDebouncedSearch("")
@@ -74,14 +71,12 @@ const ChatBotConversationList: React.FC = () => {
     }
   }, [])
 
-  // Memoize the conversation display name function to prevent unnecessary recalculations
   const getConversationDisplayName = useCallback(
     (address: string | undefined, conversation: ConversationType): string => {
       if (conversation.type === "group") {
         return conversation.senderName || conversation.receiverName || "Group"
       }
 
-      // For direct conversations, show the other person's name
       if (address?.toLowerCase() === conversation.sender?.toLowerCase()) {
         return conversation.receiverName || ""
       } else {
@@ -91,7 +86,6 @@ const ChatBotConversationList: React.FC = () => {
     [],
   )
 
-  // Memoize filtered conversations to prevent unnecessary recalculations
   const filteredConversations = useMemo(() => {
     if (!debouncedSearch.trim()) return conversations
 
@@ -108,7 +102,6 @@ const ChatBotConversationList: React.FC = () => {
     [setActiveConversation],
   )
 
-  // Memoized render functions to prevent unnecessary re-renders
   const renderConversation = useCallback(
     (conv: ConversationType): ReactElement => {
       const isDirectChat = Number(conv.ctype) === 0 // Convert BigInt to number first

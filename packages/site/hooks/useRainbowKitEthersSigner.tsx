@@ -28,10 +28,8 @@ export const useRainbowKitEthersSigner = () => {
           const eip1193 = walletClient.transport
           const browserProvider = new ethers.BrowserProvider(eip1193 as any)
 
-          // Ensure there is at least one authorized account before attempting getSigner
           let accounts: string[] = []
           try {
-            // Prefer listAccounts when available
             accounts = (await browserProvider.listAccounts()).map((a) => a.address)
           } catch (_) {
             try {
@@ -64,8 +62,7 @@ export const useRainbowKitEthersSigner = () => {
           setEthersSigner(signer)
           setProvider(browserProvider)
           setEip1193Provider(eip1193)
-        } catch (error: any) {
-          // Handle common user-rejection / provider coalescing issues without crashing the app
+        } catch (error: any) {  
           const code = error?.code
           if (code === 4001 || code === -32001) {
             console.warn('User rejected request or provider returned unknown error; clearing signer state', error)

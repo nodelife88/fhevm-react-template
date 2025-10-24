@@ -12,11 +12,9 @@ type SealrConversationStore = {
   fetchConversations: () => Promise<Conversation[] | void>;
   getOrCreateDirectConversation: (toAddress: string) => Promise<number>;
   
-  // Cache to prevent excessive onchain calls
   lastFetchTime: number;
   fetchTimeout: NodeJS.Timeout | null;
 
-  // Group chat functionality - simplified
   createGroup: (name: string, members: string[]) => Promise<boolean>;
   deleteConversation: (conversationId: number) => Promise<boolean>;
 
@@ -45,11 +43,8 @@ export const useFHESealrConversationStore =
     getActiveConversation: () => get().activeConversation,
     addConversation: (convo) => set((s) => ({ conversations: [convo, ...s.conversations] })),
     
-    // Cache to prevent excessive onchain calls
     lastFetchTime: 0,
     fetchTimeout: null,
-
-    // Group chat functionality - simplified
     createGroup: async (name: string, members: string[]) => {
       try {
         const { contractTx } = useFHESealrStore.getState();
@@ -79,12 +74,10 @@ export const useFHESealrConversationStore =
         await tx.wait();
         console.log('Conversation deleted successfully');
         
-        // Remove from local state
         const { conversations } = get();
         const updatedConversations = conversations.filter(conv => conv.id !== conversationId);
         set({ conversations: updatedConversations });
         
-        // Clear active conversation if it was deleted
         const { activeConversation } = get();
         if (activeConversation?.id === conversationId) {
           set({ activeConversation: null, activeMessages: [] });
@@ -100,13 +93,11 @@ export const useFHESealrConversationStore =
       const now = Date.now()
       const { lastFetchTime, fetchTimeout } = get()
       
-      // Prevent excessive calls - only fetch if more than 5 seconds have passed
       if (now - lastFetchTime < 5000) {
         console.log('Skipping fetchConversations - too recent')
         return get().conversations
       }
       
-      // Clear any pending timeout
       if (fetchTimeout) {
         clearTimeout(fetchTimeout)
       }
@@ -131,18 +122,14 @@ export const useFHESealrConversationStore =
         const rawConversations = await contractView?.myConversations(profile?.wallet);
         console.log('Raw conversations from contract:', rawConversations);
         
-        // Handle case where conversations is null/undefined or not an array
         if (!rawConversations || !Array.isArray(rawConversations)) {
           console.warn('Invalid conversations data:', rawConversations);
           set({ conversations: [], lastFetchTime: now });
           return [];
         }
 
-        // Map contract data to frontend format
         const mappedConversations: Conversation[] = await Promise.all(rawConversations.map(async (rawConv: any) => {
-          const isDirect = Number(rawConv.ctype) === 0; // Convert BigInt to number first
-          
-          // Debug log for each conversation
+          const isDirect = Number(rawConv.ctype) === 0;
           console.log('Mapping conversation from contract:', {
             id: rawConv.id,
             ctype: rawConv.ctype,
@@ -154,12 +141,10 @@ export const useFHESealrConversationStore =
           });
           
           if (isDirect) {
-            // For direct conversations, find the other participant
             const otherMember = rawConv.members.find((member: string) => 
               member.toLowerCase() !== profile.wallet.toLowerCase()
             );
             
-            // Fetch the other person's profile to get their name
             let otherPersonName = "Unknown User";
             try {
               if (otherMember && contractView) {
@@ -192,7 +177,6 @@ export const useFHESealrConversationStore =
               members: rawConv.members
             };
           } else {
-            // For group conversations
             return {
               id: Number(rawConv.id),
               ctype: rawConv.ctype,
@@ -275,7 +259,7 @@ export const useFHESealrConversationStore =
         await tx.wait();
       } catch (err) {
         console.error("Send message failed", err);
-        throw err; // Re-throw to handle in UI
+        throw err; 
       }
     },
     fetchMessage: async (messageId) => {

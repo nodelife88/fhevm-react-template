@@ -8,8 +8,8 @@ export type Conversation = {
   createdAt?: number;
   status?: number;
   type?: "direct" | "group";
-  ctype?: number; // 0 = direct, 1 = group
-  members?: string[]; // For group conversations
+  ctype?: number;
+  members?: string[];
 };
 
 export type GroupConversation = {
