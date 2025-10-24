@@ -1,4 +1,4 @@
-import { openDB, DBSchema, IDBPDatabase } from "idb";
+// Dynamic import of idb to avoid server-side issues
 
 type FhevmStoredPublicKey = {
   publicKeyId: string;
@@ -10,7 +10,7 @@ type FhevmStoredPublicParams = {
   publicParams: Uint8Array;
 };
 
-interface PublicParamsDB extends DBSchema {
+interface PublicParamsDB {
   publicKeyStore: {
     key: string;
     value: {
@@ -27,26 +27,34 @@ interface PublicParamsDB extends DBSchema {
   };
 }
 
-let __dbPromise: Promise<IDBPDatabase<PublicParamsDB>> | undefined = undefined;
+let __dbPromise: Promise<any> | undefined = undefined;
 
-async function _getDB(): Promise<IDBPDatabase<PublicParamsDB> | undefined> {
+async function _getDB(): Promise<any> {
   if (__dbPromise) {
     return __dbPromise;
   }
   if (typeof window === "undefined") {
     return undefined;
   }
-  __dbPromise = openDB<PublicParamsDB>("fhevm", 1, {
-    upgrade(db) {
-      if (!db.objectStoreNames.contains("paramsStore")) {
-        db.createObjectStore("paramsStore", { keyPath: "acl" });
-      }
-      if (!db.objectStoreNames.contains("publicKeyStore")) {
-        db.createObjectStore("publicKeyStore", { keyPath: "acl" });
-      }
-    },
-  });
-  return __dbPromise;
+  
+  try {
+    // Dynamically import idb only in browser environment
+    const { openDB } = await import("idb");
+    __dbPromise = openDB("fhevm", 1, {
+      upgrade(db: any) {
+        if (!db.objectStoreNames.contains("paramsStore")) {
+          db.createObjectStore("paramsStore", { keyPath: "acl" });
+        }
+        if (!db.objectStoreNames.contains("publicKeyStore")) {
+          db.createObjectStore("publicKeyStore", { keyPath: "acl" });
+        }
+      },
+    });
+    return __dbPromise;
+  } catch (error) {
+    console.warn("Failed to initialize IndexedDB:", error);
+    return undefined;
+  }
 }
 
 type FhevmInstanceConfigPublicKey = {

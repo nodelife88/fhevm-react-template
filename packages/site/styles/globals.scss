@@ -1,0 +1,15 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --color-primary: #ffd200;
+  --color-primary-dark: #e6bd00;
+}
+.zama-bg {
+  background-color: var(--color-primary);
+}
+
+.zama-bg-gradient {
+  background: linear-gradient(90deg, #ffd200 0%, #ffe866 100%);
+}

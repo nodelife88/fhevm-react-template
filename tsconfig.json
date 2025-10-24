@@ -8,7 +8,10 @@
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-    "resolveJsonModule": true
+    "resolveJsonModule": true,
+    "paths": {
+      "@fhevm-sdk": ["./node_modules/fhevm-sdk"]
+    }
   },
   "include": [
     "packages/**/*",

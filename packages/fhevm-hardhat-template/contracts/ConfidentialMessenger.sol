@@ -1,336 +1,283 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.20;
+pragma solidity ^0.8.24;
 
-/**
- * Confidential Messenger (FHEVM)
- *
- * - Message content encrypted on client/relayer side (ciphertext blob stored on-chain).
- * - Sensitive metadata (read status, quotedId) uses FHE euintX.
- * - No FHE operations in view/pure functions.
- * - Uses FHE.allow / FHE.allowTransient / FHE.makePubliclyDecryptable correctly.
- *
- * Notes:
- *  - Content ciphertext blob is opaque (bytes). Encryption/decryption process uses Relayer SDK on frontend.
- *  - If you want content as FHE handle (e.g., ebytes256), extend functions to accept externalEbytes256 and FHE.fromExternal.
- */
+import {FHE, euint256, externalEuint256} from "@fhevm/solidity/lib/FHE.sol";
+import {SepoliaConfig} from "@fhevm/solidity/config/ZamaConfig.sol";
 
-import { FHE, euint8, euint64, externalEuint8, externalEuint64 } from "@fhevm/solidity/lib/FHE.sol";
+contract ConfidentialMessenger is SepoliaConfig {
+    enum Status { SENT, DELIVERED, READ }
+    enum ConversationType { DIRECT, GROUP }
 
-contract ConfidentialMessenger {
-    // ====== Events ======
-    event MessageSent(
-        uint256 indexed msgId,
-        address indexed sender,
-        address indexed receiver,
-        bytes32 channel,
-        uint256 timestamp
-    );
-    event MessageRead(uint256 indexed msgId);
-    event MessageDeleted(uint256 indexed msgId);
-    event MessagePublicized(uint256 indexed msgId);
+    struct UserProfile {
+        string name;
+        address wallet;
+        string avatarUrl;
+        uint64 createdAt;
+        bool active;
+    }
 
-    event ChannelCreated(bytes32 indexed channel, address[] members);
-    event ChannelMembersAdded(bytes32 indexed channel, address[] members);
-    event ChannelMembersRemoved(bytes32 indexed channel, address[] members);
+    struct Message {
+        uint256 id;
+        uint256 conversationId;
+        address sender;
+        uint64 createdAt;
+        Status status;
+        euint256[] content;
+        euint256 reaction;
+    }
 
-    // ====== Access roles ======
-    address public owner;
+    struct Conversation {
+        uint256 id;
+        ConversationType ctype;
+        address creator;
+        string name;
+        address[] members;
+        uint64 createdAt;
+        Status status;
+        bool deleted;
+    }
 
-    modifier onlyOwner() {
-        require(msg.sender == owner, "only owner");
+    uint256 private _nextMessageId = 1;
+    uint256 private _nextConversationId = 1;
+
+    mapping(address => UserProfile) public profiles;
+    mapping(string => address) private _nameToAddress;
+    address[] private _allUsers;
+
+    mapping(uint256 => Conversation) public conversations;
+    mapping(bytes32 => uint256) private _directKeyToId;
+    mapping(address => uint256[]) private _userConversations;
+
+    mapping(uint256 => Message) public messages;
+    mapping(uint256 => uint256[]) private _conversationIndex;
+
+    event MessageSent(uint256 indexed msgId, uint256 indexed convId, address indexed from);
+    event ConversationCreated(uint256 indexed convId, ConversationType ctype);
+    event ConversationDeleted(uint256 indexed convId, address indexed by);
+    event ReactionChanged(uint256 indexed msgId, address indexed by);
+
+    modifier onlyProfile() {
+        require(bytes(profiles[msg.sender].name).length > 0, "Profile required");
         _;
     }
 
-    // ====== Data Structures ======
-    struct Message {
-        address sender;
-        address receiver;          // zero address when it's a channel message
-        bytes32 channel;           // keccak256(channelName) or app-generated ID; 0x0 if 1:1
-        bytes contentCiphertext;   // ciphertext blob (opaque)
-        euint8 isRead;             // 0/1 (encrypted)
-        euint64 quotedMsgId;       // encrypted quoted msg id (0 if no quote)
-        bool isDeleted;            // soft delete (public)
-        bool isPublic;             // indicates if publicized (public)
-        uint256 timestamp;         // can be public for fast indexing/pagination
+    function createProfile(string memory name, string memory avatarUrl) external {
+        require(bytes(name).length > 0, "Empty name");
+        require(bytes(profiles[msg.sender].name).length == 0, "Profile exists");
+        require(_nameToAddress[name] == address(0), "Name taken");
+
+        profiles[msg.sender] = UserProfile(name, msg.sender, avatarUrl, uint64(block.timestamp), true);
+        _nameToAddress[name] = msg.sender;
+        _allUsers.push(msg.sender);
     }
 
-    // Channel membership set (for small/medium channels).
-    mapping(bytes32 => mapping(address => bool)) public isChannelMember;
-    mapping(bytes32 => address[]) public channelMembers;
-
-    // Inbox/outbox (index for UI & pagination)
-    mapping(address => uint256[]) public inbox;
-    mapping(address => uint256[]) public outbox;
-
-    // Message list by channel
-    mapping(bytes32 => uint256[]) public channelMsgs;
-
-    // Store messages
-    mapping(uint256 => Message) public messages;
-    uint256 public nextMsgId = 1;
-
-    constructor() {
-        owner = msg.sender;
+    function getProfile() external view returns (UserProfile memory) {
+        require(bytes(profiles[msg.sender].name).length > 0, "Profile not found");
+        return profiles[msg.sender];
     }
 
-    // ====== Channel Admin (simple, can be replaced with Governor) ======
-    function createChannel(bytes32 channel, address[] calldata members) external onlyOwner {
-        require(channel != bytes32(0), "channel zero");
-        require(channelMembers[channel].length == 0, "channel exists");
-        for (uint256 i = 0; i < members.length; i++) {
-            address m = members[i];
-            if (!isChannelMember[channel][m]) {
-                isChannelMember[channel][m] = true;
-                channelMembers[channel].push(m);
-            }
+    function getProfiles() external view returns (UserProfile[] memory) {
+        UserProfile[] memory allProfiles = new UserProfile[](_allUsers.length);
+        for (uint i = 0; i < _allUsers.length; i++) {
+            allProfiles[i] = profiles[_allUsers[i]];
         }
-        emit ChannelCreated(channel, members);
+        return allProfiles;
     }
 
-    function addChannelMembers(bytes32 channel, address[] calldata members) external onlyOwner {
-        require(channelMembers[channel].length > 0, "channel not found");
-        for (uint256 i = 0; i < members.length; i++) {
-            address m = members[i];
-            if (!isChannelMember[channel][m]) {
-                isChannelMember[channel][m] = true;
-                channelMembers[channel].push(m);
-            }
+    function getProfileByAddress(address userAddress) external view returns (UserProfile memory) {
+        require(bytes(profiles[userAddress].name).length > 0, "Profile not found");
+        return profiles[userAddress];
+    }
+
+    function getOrCreateDirectConversation(address other) external onlyProfile returns (uint256) {
+        require(msg.sender != other, "Cannot chat with self");
+        require(bytes(profiles[other].name).length > 0, "User not found");
+
+        bytes32 key = _convKey(msg.sender, other);
+        uint256 id = _directKeyToId[key];
+        if (id != 0) return id;
+
+        id = _nextConversationId++;
+        address[] memory participants = new address[](2);
+        participants[0] = msg.sender;
+        participants[1] = other;
+
+        conversations[id] = Conversation({
+            id: id,
+            ctype: ConversationType.DIRECT,
+            creator: msg.sender,
+            name: profiles[other].name,
+            members: participants,
+            createdAt: uint64(block.timestamp),
+            status: Status.SENT,
+            deleted: false
+        });
+
+        _directKeyToId[key] = id;
+        _userConversations[msg.sender].push(id);
+        _userConversations[other].push(id);
+
+        emit ConversationCreated(id, ConversationType.DIRECT);
+        return id;
+    }
+
+    function createGroupConversation(string memory name, address[] calldata members) external onlyProfile returns (uint256) {
+        require(members.length > 1, "Minimum 2 members");
+
+        uint256 id = _nextConversationId++;
+        address[] memory all = new address[](members.length + 1);
+        all[0] = msg.sender;
+        for (uint i = 0; i < members.length; i++) {
+            all[i + 1] = members[i];
         }
-        emit ChannelMembersAdded(channel, members);
-    }
 
-    function removeChannelMembers(bytes32 channel, address[] calldata members) external onlyOwner {
-        require(channelMembers[channel].length > 0, "channel not found");
-        for (uint256 i = 0; i < members.length; i++) {
-            address m = members[i];
-            isChannelMember[channel][m] = false;
+        conversations[id] = Conversation({
+            id: id,
+            ctype: ConversationType.GROUP,
+            creator: msg.sender,
+            name: name,
+            members: all,
+            createdAt: uint64(block.timestamp),
+            status: Status.SENT,
+            deleted: false
+        });
+
+        for (uint i = 0; i < all.length; i++) {
+            _userConversations[all[i]].push(id);
         }
-        emit ChannelMembersRemoved(channel, members);
+
+        emit ConversationCreated(id, ConversationType.GROUP);
+        return id;
     }
 
-    // ====== Core: send 1:1 message ======
-    /**
-     * @param to recipient
-     * @param contentCiphertext ciphertext blob (encrypted on frontend/relayer)
-     * @param quotedIdExt optional encrypted quoted msg id (0 if no quote)
-     * @param attestation attestation for external inputs (FHE.fromExternal)
-     */
     function sendMessage(
-        address to,
-        bytes calldata contentCiphertext,
-        externalEuint64 quotedIdExt,
-        bytes calldata attestation
-    ) external {
-        require(to != address(0), "invalid receiver");
+        uint256 conversationId,
+        externalEuint256[] calldata contentExt,
+        bytes[] calldata proofs,
+        externalEuint256 reactionExt,
+        bytes calldata reactionProof
+    ) external onlyProfile {
+        Conversation storage conv = conversations[conversationId];
+        require(conv.id != 0, "Conversation not found");
 
-        // Get encrypted quoted id (0 if none)
-        euint64 quotedId = FHE.fromExternal(quotedIdExt, attestation);
-
-        // Create isRead flag = 0 (encrypted)
-        euint8 isRead = FHE.asEuint8(0);
-
-        // Store message
-        uint256 id = nextMsgId++;
-        messages[id] = Message({
-            sender: msg.sender,
-            receiver: to,
-            channel: bytes32(0),
-            contentCiphertext: contentCiphertext,
-            isRead: isRead,
-            quotedMsgId: quotedId,
-            isDeleted: false,
-            isPublic: false,
-            timestamp: block.timestamp
-        });
-
-        // Grant access to FHE metadata (isRead flag & quotedId)
-        // For sender, receiver and contract (for future FHE operations)
-        FHE.allow(messages[id].isRead, msg.sender);
-        FHE.allow(messages[id].isRead, to);
-        FHE.allow(messages[id].isRead, address(this));
-
-        FHE.allow(messages[id].quotedMsgId, msg.sender);
-        FHE.allow(messages[id].quotedMsgId, to);
-        FHE.allow(messages[id].quotedMsgId, address(this));
-
-        // Indexing
-        outbox[msg.sender].push(id);
-        inbox[to].push(id);
-
-        emit MessageSent(id, msg.sender, to, bytes32(0), block.timestamp);
-    }
-
-    // ====== Core: send message to channel (small-medium groups/DAOs) ======
-    /**
-     * @param channel channel ID (bytes32). Requires sender to be a member.
-     * @param contentCiphertext ciphertext blob
-     * @param quotedIdExt encrypted quoted msg id
-     * @param attestation FHE attestation
-     */
-    function sendToChannel(
-        bytes32 channel,
-        bytes calldata contentCiphertext,
-        externalEuint64 quotedIdExt,
-        bytes calldata attestation
-    ) external {
-        require(channel != bytes32(0), "invalid channel");
-        require(isChannelMember[channel][msg.sender], "not channel member");
-
-        euint64 quotedId = FHE.fromExternal(quotedIdExt, attestation);
-        euint8 isRead = FHE.asEuint8(0);
-
-        uint256 id = nextMsgId++;
-        messages[id] = Message({
-            sender: msg.sender,
-            receiver: address(0), // channel message
-            channel: channel,
-            contentCiphertext: contentCiphertext,
-            isRead: isRead,
-            quotedMsgId: quotedId,
-            isDeleted: false,
-            isPublic: false,
-            timestamp: block.timestamp
-        });
-
-        // Grant FHE metadata access to all current members (be careful with gas for large channels!)
-        address[] memory members = channelMembers[channel];
-        for (uint256 i = 0; i < members.length; i++) {
-            address m = members[i];
-            if (isChannelMember[channel][m]) {
-                FHE.allow(messages[id].isRead, m);
-                FHE.allow(messages[id].quotedMsgId, m);
-                inbox[m].push(id);
+        bool isMember = false;
+        for (uint i = 0; i < conv.members.length; i++) {
+            if (conv.members[i] == msg.sender) {
+                isMember = true;
+                break;
             }
         }
-        // Sender (outbox)
-        FHE.allow(messages[id].isRead, msg.sender);
-        FHE.allow(messages[id].quotedMsgId, msg.sender);
-        outbox[msg.sender].push(id);
+        require(isMember, "Not a conversation member");
+        require(contentExt.length == proofs.length, "Mismatched proofs");
 
-        // Contract grants itself access
-        FHE.allow(messages[id].isRead, address(this));
-        FHE.allow(messages[id].quotedMsgId, address(this));
-
-        channelMsgs[channel].push(id);
-
-        emit MessageSent(id, msg.sender, address(0), channel, block.timestamp);
-    }
-
-    // ====== Mark as read (1:1) ======
-    function markAsRead(uint256 msgId) external {
-        Message storage m = messages[msgId];
-        require(!m.isDeleted, "deleted");
-        require(m.receiver != address(0), "channel msg");
-        require(msg.sender == m.receiver, "only receiver");
-
-        // isRead = isRead OR 1
-        euint8 one = FHE.asEuint8(1);
-        m.isRead = FHE.or(m.isRead, one);
-
-        // Maintain access for sender/receiver/this to new handle
-        FHE.allow(m.isRead, m.sender);
-        FHE.allow(m.isRead, m.receiver);
-        FHE.allow(m.isRead, address(this));
-
-        emit MessageRead(msgId);
-    }
-
-    // ====== Mark as read (channel) ======
-    // For channels, "read" status is usually per-user. Here illustrates: global channel flag (simple).
-    // Can be extended to map msgId=>user=>isReadEncrypted if per-user read-state needed (complex & gas expensive).
-    function markChannelMessageRead(uint256 msgId) external {
-        Message storage m = messages[msgId];
-        require(!m.isDeleted, "deleted");
-        require(m.channel != bytes32(0), "not channel msg");
-        require(isChannelMember[m.channel][msg.sender], "not member");
-
-        euint8 one = FHE.asEuint8(1);
-        m.isRead = FHE.or(m.isRead, one);
-
-        // Grant access to all members to read new flag
-        address[] memory members = channelMembers[m.channel];
-        for (uint256 i = 0; i < members.length; i++) {
-            address mem = members[i];
-            if (isChannelMember[m.channel][mem]) {
-                FHE.allow(m.isRead, mem);
+        euint256[] memory contentCT = new euint256[](contentExt.length);
+        for (uint i = 0; i < contentExt.length; i++) {
+            contentCT[i] = FHE.fromExternal(contentExt[i], proofs[i]);
+            FHE.allowThis(contentCT[i]);
+            for (uint j = 0; j < conv.members.length; j++) {
+                FHE.allow(contentCT[i], conv.members[j]);
             }
         }
-        FHE.allow(m.isRead, address(this));
 
-        emit MessageRead(msgId);
-    }
-
-    // ====== Publicize content (DAO/unseal). Here sets public flag; content blob display handled by client. ======
-    function makeMessagePublic(uint256 msgId) external onlyOwner {
-        Message storage m = messages[msgId];
-        require(!m.isDeleted, "deleted");
-        require(!m.isPublic, "already public");
-
-        // Publicize FHE metadata if you want to allow everyone to read (optional)
-        // Example: only publicize quotedMsgId (or isRead too if needed)
-        FHE.makePubliclyDecryptable(m.quotedMsgId);
-        FHE.makePubliclyDecryptable(m.isRead);
-
-        m.isPublic = true;
-        emit MessagePublicized(msgId);
-    }
-
-    // ====== Soft delete ======
-    function softDelete(uint256 msgId) external {
-        Message storage m = messages[msgId];
-        require(!m.isDeleted, "already deleted");
-        // Allow sender or receiver (1:1), or sender/member (channel)
-        if (m.channel == bytes32(0)) {
-            require(msg.sender == m.sender || msg.sender == m.receiver, "not allowed");
-        } else {
-            require(msg.sender == m.sender || isChannelMember[m.channel][msg.sender], "not allowed");
+        euint256 reactionCT = FHE.fromExternal(reactionExt, reactionProof);
+        FHE.allowThis(reactionCT);
+        for (uint j = 0; j < conv.members.length; j++) {
+            FHE.allow(reactionCT, conv.members[j]);
         }
-        m.isDeleted = true;
-        emit MessageDeleted(msgId);
+
+        uint256 msgId = _nextMessageId++;
+        messages[msgId] = Message(msgId, conversationId, msg.sender, uint64(block.timestamp), Status.SENT, contentCT, reactionCT);
+        _conversationIndex[conversationId].push(msgId);
+
+        emit MessageSent(msgId, conversationId, msg.sender);
     }
 
-    // ====== Queries (view) — no FHE ops in view/pure functions ======
-    function getMessageHeader(uint256 msgId)
-        external
-        view
-        returns (
-            address sender,
-            address receiver,
-            bytes32 channel,
-            bool isDeleted,
-            bool isPublic,
-            uint256 timestamp
-        )
-    {
+    function changeReaction(uint256 msgId, externalEuint256 reactionExt, bytes calldata proof) external onlyProfile {
         Message storage m = messages[msgId];
-        return (m.sender, m.receiver, m.channel, m.isDeleted, m.isPublic, m.timestamp);
+        require(m.id != 0, "Message does not exist");
+        
+        // Check if user is a member of the conversation
+        Conversation storage conv = conversations[m.conversationId];
+        bool isMember = false;
+        for (uint i = 0; i < conv.members.length; i++) {
+            if (conv.members[i] == msg.sender) {
+                isMember = true;
+                break;
+            }
+        }
+        require(isMember, "Not authorized to change reaction");
+
+        // Decode new reaction ciphertext
+        euint256 newReaction = FHE.fromExternal(reactionExt, proof);
+        FHE.allowThis(newReaction);
+        
+        // Allow all conversation members to decrypt
+        for (uint j = 0; j < conv.members.length; j++) {
+            FHE.allow(newReaction, conv.members[j]);
+        }
+
+        // Update reaction
+        m.reaction = newReaction;
+
+        emit ReactionChanged(msgId, msg.sender);
     }
 
-    function getMessageCiphertext(uint256 msgId) external view returns (bytes memory) {
-        return messages[msgId].contentCiphertext;
+    function getMessages(uint256 conversationId) external view returns (Message[] memory out) {
+        uint256[] memory ids = _conversationIndex[conversationId];
+        out = new Message[](ids.length);
+        for (uint i = 0; i < ids.length; i++) {
+            out[i] = messages[ids[i]];
+        }
     }
 
-    // Returns FHE metadata handle for client/relayer to decrypt (subject to permissions)
-    // Note: NO FHE ops here, only read storage.
-    function getMessageEncryptedFlags(uint256 msgId)
-        external
-        view
-        returns (euint8 isRead, euint64 quotedMsgId)
-    {
-        Message storage m = messages[msgId];
-        return (m.isRead, m.quotedMsgId);
+    function getMessage(uint256 msgId) external view returns (Message memory) {
+        require(messages[msgId].id != 0, "Message does not exist");
+        return messages[msgId];
     }
 
-    // ====== Helpers: Indexing ======
-    function inboxOf(address user) external view returns (uint256[] memory) {
-        return inbox[user];
+    function myConversations(address user) external view returns (Conversation[] memory out) {
+        uint256[] memory ids = _userConversations[user];
+        
+        // First pass: count non-deleted conversations
+        uint256 count = 0;
+        for (uint i = 0; i < ids.length; i++) {
+            if (!conversations[ids[i]].deleted) {
+                count++;
+            }
+        }
+        
+        // Second pass: populate array with non-deleted conversations
+        out = new Conversation[](count);
+        uint256 j = 0;
+        for (uint i = 0; i < ids.length; i++) {
+            if (!conversations[ids[i]].deleted) {
+                out[j++] = conversations[ids[i]];
+            }
+        }
     }
 
-    function outboxOf(address user) external view returns (uint256[] memory) {
-        return outbox[user];
+    function deleteConversation(uint256 conversationId) external onlyProfile {
+        Conversation storage conv = conversations[conversationId];
+        require(conv.id != 0, "Conversation does not exist");
+        require(!conv.deleted, "Conversation already deleted");
+        
+        // Check if user is a member of the conversation
+        bool isMember = false;
+        for (uint i = 0; i < conv.members.length; i++) {
+            if (conv.members[i] == msg.sender) {
+                isMember = true;
+                break;
+            }
+        }
+        require(isMember, "Not authorized to delete conversation");
+
+        // Soft delete - mark as deleted
+        conv.deleted = true;
+
+        emit ConversationDeleted(conversationId, msg.sender);
     }
 
-    function channelMessages(bytes32 channel) external view returns (uint256[] memory) {
-        return channelMsgs[channel];
+    function _convKey(address a, address b) internal pure returns (bytes32) {
+        return (a < b) ? keccak256(abi.encodePacked(a, b)) : keccak256(abi.encodePacked(b, a));
     }
 }

@@ -1,0 +1,229 @@
+.cs-main-container {
+  height: calc(100% - 90px);
+}
+
+.cs-message {
+  overflow: visible !important;
+}
+
+.cs-message-list {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  background-color: #f9faf9 !important;
+  overflow: visible !important;
+
+  > div {
+    height: auto;
+  }
+}
+
+.cs-conversation-header {
+  background-color: #f9faf9 !important;
+}
+
+.cs-conversation-list {
+  background-color: #fdfdfc !important;
+}
+
+.cs-conversation {
+  .cs-conversation__name {
+    color: #555 !important;
+  }
+
+  .cs-conversation__info {
+    color: #555 !important;
+  }
+}
+
+.cs-conversation--active {
+  .cs-conversation__name {
+    color: rgba(0, 0, 0, 0.87) !important;
+  }
+
+  .cs-conversation__info {
+    color: rgba(0, 0, 0, 0.87) !important;
+  }
+}
+
+.cs-message__content-wrapper {
+  position: relative;
+  padding: 1px;
+  border-radius: 10px !important;
+  overflow: hidden;
+  border-top-left-radius: 0px !important;
+
+  &::before {
+    content: "";
+    position: absolute;
+    top: -10px;
+    left: 0;
+    width: 100%;
+    height: 10px;
+    pointer-events: auto;
+    background-color: transparent;
+    z-index: 1;
+  }
+
+  .reactions {
+    width: 247px;
+    position: absolute;
+    bottom: 48px;
+    right: -8px;
+    opacity: 0;
+    transform: translateY(-10px);
+    transition:
+      opacity 0.3s ease,
+      transform 0.3s ease;
+    pointer-events: none;
+    z-index: 2;
+  }
+
+  .reaction {
+    position: absolute;
+    bottom: -12px;
+    right: 0;
+    height: 22px;
+    width: 26px;
+    background-color: #F0F1F0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    font-size: 18px;
+  }
+
+  &:has(.cs-message__footer) {
+    .reaction {
+      bottom: 16px;
+    }
+  }
+
+  &:has(.reaction) {
+    margin-bottom: 6px;
+
+    .cs-message__footer {
+      margin-top: 10px !important;
+    }
+  }
+}
+
+.cs-message--outgoing {
+  .cs-message__content-wrapper {
+    &:hover .reactions {
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: auto;
+      right: 0;
+    }
+
+    .reactions {
+      right: 0px !important;
+    }
+  }
+}
+
+.cs-message--incoming {
+  .cs-message__content-wrapper {
+    &:hover .reactions {
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: auto;
+      left: 0;
+    }
+
+    .reactions {
+      left: 0px !important;
+    }
+  }
+}
+
+.cs-message--incoming .cs-message__content {
+  background-color: #ffffff !important;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+  border-radius: 10px !important;
+  overflow: hidden;
+}
+
+.cs-message--outgoing .cs-message__content {
+  background-color: var(--color-primary) !important;
+  color: #222 !important;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  border-radius: 10px !important;
+  overflow: hidden;
+}
+
+.cs-message-input {
+  border-top: none !important;
+  background-color: #f9faf9 !important;
+
+  &__content-editor-wrapper {
+    height: 100px;
+    margin-bottom: 10px;
+    margin-right: 0.8em;
+    padding-right: 30px;
+    background-color: #fff !important;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  }
+
+  &__content-editor-container {
+    padding-right: 10px;
+    background-color: #fff !important;
+  }
+
+  &__content-editor {
+    background-color: #fff !important;
+  }
+
+  .cs-message-input__tools {
+    top: 6px;
+    right: 10px;
+    position: absolute;
+
+    svg {
+      color: #000 !important;
+    }
+  }
+}
+
+.cs-conversation:hover {
+  background-color: #fefce8 !important;
+}
+
+.cs-conversation.cs-conversation--active {
+  background-color: #fefce8 !important;
+}
+
+.ps__thumb-y {
+  background: #fef9c3 !important;
+}
+
+.chat-header {
+  .scrollbar-container {
+    max-height: 400px;
+  }
+}
+
+.empty-state {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+
+  height: 100%;
+  width: 100%;
+
+  font-size: 18px;
+  color: #888;
+}
+
+.chat-message {
+  .scrollbar-container {
+    padding-top: 90px;
+  }
+
+  .cs-message__content-wrapper {
+    position: relative !important;
+    overflow: visible !important;
+  }
+}

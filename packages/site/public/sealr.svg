@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="256" height="256" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0EA5E9"/>
+      <stop offset="100%" stop-color="#3B82F6"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="6" stdDeviation="10" flood-color="#000" flood-opacity="0.25"/>
+    </filter>
+  </defs>
+  <rect x="20" y="20" width="216" height="216" rx="48" fill="url(#g)" filter="url(#shadow)"/>
+  <!-- Sealr emblem: stylized S shield -->
+  <g transform="translate(48,48)">
+    <path d="M80 0c44.183 0 80 35.817 80 80s-35.817 80-80 80S0 124.183 0 80 35.817 0 80 0z" fill="rgba(255,255,255,0.12)"/>
+    <path d="M46 56c0-15.464 15.04-28 34.6-28H100c12.15 0 22 9.85 22 22 0 10.493-7.215 19.338-17.04 21.56l-34.92 7.92C62.43 81.57 58 86.79 58 93c0 8.837 8.163 16 18.2 16H112" stroke="#fff" stroke-width="14" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+  <!-- Small cut for favicon legibility -->
+  <circle cx="208" cy="48" r="10" fill="#fff" opacity="0.9"/>
+</svg>
+
+
