@@ -3,9 +3,11 @@
 [![License](https://img.shields.io/badge/license-BSD--3--Clause--Clear-blue.svg)](LICENSE)
 [![Node Version](https://img.shields.io/badge/node-%3E%3D20.0.0-green.svg)](package.json)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.9.2-blue.svg)](package.json)
+[![Live Demo](https://img.shields.io/badge/demo-live-brightgreen)](https://sealr-zama.vercel.app)
 
 A fully on-chain, end-to-end encrypted messaging dApp powered by **Zama's FHEVM** (Fully Homomorphic Encryption Virtual Machine). This application enables confidential conversations with complete privacy, where message content remains encrypted even on a public blockchain.
-Live Demo: https://sealr-zama.vercel.app
+
+🌐 **[Try Live Demo →](https://sealr-zama.vercel.app)**
 ## 🌟 Features
 
 ### Core Messaging
@@ -30,12 +32,15 @@ Live Demo: https://sealr-zama.vercel.app
 
 ## 📋 Table of Contents
 
+- [Features](#features)
 - [Getting Started](#getting-started)
 - [Project Structure](#project-structure)
 - [Tech Stack](#tech-stack)
 - [Architecture](#architecture)
-- [Development](#development)
+- [Deployment](#deployment)
+- [Roadmap](#roadmap)
 - [License](#license)
+- [Support](#support)
 
 ## 🚀 Getting Started
 
