@@ -30,18 +30,6 @@ A fully on-chain, end-to-end encrypted messaging dApp powered by **Zama's FHEVM*
 - **⚡ Real-time Updates**: Live message synchronization across devices
 - **🎯 TypeScript**: Fully typed for better developer experience
 
-## 📋 Table of Contents
-
-- [Features](#features)
-- [Getting Started](#getting-started)
-- [Project Structure](#project-structure)
-- [Tech Stack](#tech-stack)
-- [Architecture](#architecture)
-- [Deployment](#deployment)
-- [Roadmap](#roadmap)
-- [License](#license)
-- [Support](#support)
-
 ## 🚀 Getting Started
 
 ### Prerequisites
