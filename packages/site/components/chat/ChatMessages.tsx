@@ -78,12 +78,12 @@ const ChatMessages: React.FC = () => {
       const processedMessages =
         messages?.map((m: any) => ({
           id: m[0],
+          conversationId: m[1],
           sender: m[2],
-          receiver: m[3],
-          createdAt: m[4],
-          reaction: m[5],
-          content: m[6],
-          reactionEncrypted: m[7],
+          createdAt: m[3],
+          status: m[4],
+          content: m[5],
+          reactionEncrypted: m[6],
         })) ?? []
 
       const handles =
@@ -94,18 +94,45 @@ const ChatMessages: React.FC = () => {
 
       const decryptedHandles = await decryptHandles(fheInstance, handles ?? [], sig, String(activeConversation?.id))
 
-      const result = processedMessages.map((m) => ({
-        id: Number(m.id),
-        createdAt: Number(m.createdAt),
-        sender: String(m.sender),
-        content: m.content.map((h: any) => bigIntToString(BigInt(decryptedHandles[h]))).join(""),
-        direction: (String(m.sender).toLowerCase() === address?.toLowerCase() ? "outgoing" : "incoming") as
-          | "outgoing"
-          | "incoming",
-        reaction: [m.reactionEncrypted]
-          .map((h: any) => bigIntToString(BigInt(decryptedHandles[h])))
-          .join("") as ReactionType,
-      }))
+      // Check if we have enough decrypted handles to proceed
+      const decryptedCount = Object.keys(decryptedHandles).length;
+      if (decryptedCount === 0 && handles.length > 0) {
+        console.error("No handles could be decrypted - decryption may have failed");
+        return null;
+      }
+
+      const result = processedMessages.map((m) => {
+        const content = m.content
+          .map((h: any) => {
+            const decrypted = decryptedHandles[h];
+            if (decrypted === undefined) {
+              console.warn(`Missing decrypted value for handle: ${h}`);
+              return '';
+            }
+            return bigIntToString(BigInt(decrypted));
+          })
+          .join("");
+
+        const reactionArray = [m.reactionEncrypted].map((h: any) => {
+          const decrypted = decryptedHandles[h];
+          if (decrypted === undefined) {
+            console.warn(`Missing decrypted reaction for handle: ${h}`);
+            return '';
+          }
+          return bigIntToString(BigInt(decrypted));
+        });
+
+        return {
+          id: Number(m.id),
+          createdAt: Number(m.createdAt),
+          sender: String(m.sender),
+          content,
+          direction: (String(m.sender).toLowerCase() === address?.toLowerCase() ? "outgoing" : "incoming") as
+            | "outgoing"
+            | "incoming",
+          reaction: reactionArray.join("") as ReactionType,
+        };
+      })
 
       return result
     } catch (error) {
@@ -190,6 +217,7 @@ const ChatMessages: React.FC = () => {
   }
 
   const [visibleCount, setVisibleCount] = useState(30)
+  const [decryptionError, setDecryptionError] = useState(false)
 
   function handleScroll(e: React.UIEvent<HTMLDivElement>) {
     try {
@@ -203,28 +231,37 @@ const ChatMessages: React.FC = () => {
   useEffect(() => {
     async function loadMessages() {
       setLoading(true)
+      setDecryptionError(false) // Reset error state when loading new messages
 
       try {
         const encryptMessages = await fetchActiveMessages(Number(activeConversation?.id) ?? 0)
 
         if (encryptMessages && encryptMessages.length > 0) {
-          const sorted = [...encryptMessages].sort((a: any, b: any) => Number(a[4]) - Number(b[4]))
+          const sorted = [...encryptMessages].sort((a: any, b: any) => Number(a[3]) - Number(b[3]))
           const sliceStart = Math.max(0, sorted.length - visibleCount)
           const toDecrypt = sorted.slice(sliceStart)
           const decryptMessage = await decryptMessages(toDecrypt)
 
           if (decryptMessage === null) {
-            setActiveConversation(null)
+            // Don't clear the active conversation if decryption fails
+            // Just show an empty message list with a warning
+            console.warn("Unable to decrypt messages - relayer or network may be experiencing issues")
+            setDecryptionError(true)
             setActiveMessages([])
           } else {
+            setDecryptionError(false)
             setActiveMessages(decryptMessage)
           }
         } else {
+          // No messages to decrypt - this is normal for an empty conversation
           setActiveMessages([])
+          setDecryptionError(false)
         }
       } catch (error) {
         console.error("Error loading messages:", error)
+        // Don't clear the active conversation on error
         setActiveMessages([])
+        setDecryptionError(true)
       }
 
       setLoading(false)
@@ -303,6 +340,17 @@ const ChatMessages: React.FC = () => {
   return (
     <ScrollArea className="flex-1 p-6 bg-gradient-to-b from-background to-background/95">
       <div className="space-y-3 max-w-4xl mx-auto pb-4">
+        {decryptionError && activeMessages.length === 0 && (
+          <div className="flex items-center justify-center p-8">
+            <div className="text-center space-y-3 bg-card/50 backdrop-blur-sm border border-border/50 rounded-xl p-6 max-w-md">
+              <div className="text-2xl">⚠️</div>
+              <h3 className="text-base font-semibold text-foreground">Unable to load messages</h3>
+              <p className="text-sm text-muted-foreground">
+                The encryption service is temporarily unavailable. Please try again in a moment.
+              </p>
+            </div>
+          </div>
+        )}
         {activeMessages.map((msg: MessageType, index) => {
           const nextMsg = activeMessages[index + 1]
           const prevMsg = activeMessages[index - 1]

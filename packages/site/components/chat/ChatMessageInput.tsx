@@ -24,58 +24,58 @@ const ChatMessageInput: React.FC = () => {
   }
 
   async function handleSubmit(message: string) {
-    if (contractAddress && fheInstance && ethersSigner) {
-      setLoading(true)
-      setValue("")
+    if (!contractAddress || !fheInstance || !ethersSigner) {
+      console.error("Cannot send message - missing required dependencies")
+      return
+    }
 
-      const optimisticMessage = {
-        id: Date.now(),
-        createdAt: Date.now(),
-        sender: address || "",
-        content: message,
-        direction: "outgoing" as const,
-        reaction: "NONE" as any,
-        isOptimistic: true,
+    const activeConversation = getActiveConversation()
+    if (!activeConversation?.id) {
+      console.error("Cannot send message - no active conversation selected")
+      return
+    }
+
+    setLoading(true)
+    setValue("")
+
+    const optimisticMessage = {
+      id: Date.now(),
+      createdAt: Date.now(),
+      sender: address || "",
+      content: message,
+      direction: "outgoing" as const,
+      reaction: "NONE" as any,
+      isOptimistic: true,
+    }
+
+    const currentMessages = getActiveMessages()
+    setActiveMessages([...currentMessages, optimisticMessage])
+
+    try {
+      const messsagesEnc = await encryptChunksForContract(contractAddress, fheInstance, ethersSigner, message)
+      const reactionEnc = await encryptStringForContract(
+        contractAddress,
+        fheInstance,
+        ethersSigner,
+        String(ReactionType.NONE),
+      )
+
+      await sendMessage(messsagesEnc, reactionEnc)
+
+      const updatedMessages = getActiveMessages().filter((m: any) => !m.isOptimistic)
+      setActiveMessages(updatedMessages)
+    } catch (error) {
+      console.error("Error sending message:", error)
+
+      if (error instanceof Error && (error.message?.includes("relayer") || error.message?.includes("network"))) {
+        console.error("Relayer or network error - message could not be sent")
       }
 
-      const currentMessages = getActiveMessages()
-      setActiveMessages([...currentMessages, optimisticMessage])
-
-      try {
-        if (!fheInstance || !contractAddress) {
-          throw new Error("FHE instance or contract address not available")
-        }
-
-        const messsagesEnc = await encryptChunksForContract(contractAddress, fheInstance, ethersSigner, message)
-        const reactionEnc = await encryptStringForContract(
-          contractAddress,
-          fheInstance,
-          ethersSigner,
-          String(ReactionType.NONE),
-        )
-
-        const activeConversation = getActiveConversation()
-        if (!activeConversation) {
-          throw new Error("No active conversation")
-        }
-
-        await sendMessage(messsagesEnc, reactionEnc)
-
-        const updatedMessages = getActiveMessages().filter((m: any) => !m.isOptimistic)
-        setActiveMessages(updatedMessages)
-      } catch (error) {
-        console.error("Error sending message:", error)
-
-        if (error instanceof Error && (error.message?.includes("relayer") || error.message?.includes("network"))) {
-          console.error("Relayer or network error - message could not be sent")
-        }
-
-        const updatedMessages = getActiveMessages().filter((m: any) => !m.isOptimistic)
-        setActiveMessages(updatedMessages)
-        setValue(message)
-      } finally {
-        setLoading(false)
-      }
+      const updatedMessages = getActiveMessages().filter((m: any) => !m.isOptimistic)
+      setActiveMessages(updatedMessages)
+      setValue(message)
+    } finally {
+      setLoading(false)
     }
   }
 
