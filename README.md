@@ -1,202 +1,315 @@
-# Confidential Messaging dApp with FHEVM
+# Confidential Chat
 
-A fully on-chain, end-to-end encrypted messaging application using Fully Homomorphic Encryption (FHE) powered by Zama's FHEVM.
+[![License](https://img.shields.io/badge/license-BSD--3--Clause--Clear-blue.svg)](LICENSE)
+[![Node Version](https://img.shields.io/badge/node-%3E%3D20.0.0-green.svg)](package.json)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.9.2-blue.svg)](package.json)
 
-This dApp enables private chat between users or within DAOs, supporting complex message logic (e.g., read receipts, quotes, group access) while keeping content confidential.
+A fully on-chain, end-to-end encrypted messaging dApp powered by **Zama's FHEVM** (Fully Homomorphic Encryption Virtual Machine). This application enables confidential conversations with complete privacy, where message content remains encrypted even on a public blockchain.
+Live Demo: https://sealr-zama.vercel.app
+## 🌟 Features
 
----
+### Core Messaging
+- **🔐 End-to-End Encryption**: All messages are encrypted using Fully Homomorphic Encryption (FHE)
+- **👥 Direct Messaging**: Private one-on-one conversations with any user
+- **👨‍👩‍👧‍👦 Group Conversations**: Secure group chats with multiple participants
+- **💬 Message Reactions**: Add encrypted reactions to messages
+- **🗑️ Soft Deletion**: Remove conversations while maintaining privacy
+- **👤 User Profiles**: Create profiles with names and avatars
 
-## ✨ Features
+### Privacy & Security
+- **🔒 Zero-Knowledge Storage**: Message content is never decrypted on-chain
+- **🔐 Access Control**: Only authorized conversation members can decrypt messages
+- **📝 EIP-712 Authentication**: Secure authorization for decryption requests
+- **🌐 On-Chain Storage**: No reliance on external storage (IPFS, centralized servers)
 
-### ✉️ Private Messaging
+### User Experience
+- **✨ Modern UI**: Beautiful, responsive interface built with Next.js and Tailwind CSS
+- **🎨 Custom SDK**: React hooks and utilities for seamless FHEVM integration
+- **⚡ Real-time Updates**: Live message synchronization across devices
+- **🎯 TypeScript**: Fully typed for better developer experience
 
-* **Encrypted Messages**: Messages are encrypted using FHE and stored on-chain.
-* **Sender/Receiver Privacy**: Message content is visible only to sender and recipient.
-* **Message Read Status**: `isRead` flag is stored as an `ebool`.
-* **Message Quoting**: Messages can quote other messages using `quotedMsgId`.
-* **Soft Deletion**: Messages can be marked as deleted (e.g., `isDeleted` field).
+## 📋 Table of Contents
 
-### 🧳 DAO/Group Messaging
+- [Getting Started](#getting-started)
+- [Project Structure](#project-structure)
+- [Tech Stack](#tech-stack)
+- [Architecture](#architecture)
+- [Development](#development)
+- [License](#license)
 
-* **DAO Channels**: Encrypted group messages within DAO-specific channels.
-* **Confidential Discussion**: Only members can decrypt and participate.
-* **Public Disclosure Option**: After a timeout or DAO vote, messages can be made publicly decryptable (using FHEVM publicization helpers).
+## 🚀 Getting Started
 
-### 🔒 Access Control & Security
+### Prerequisites
 
-* **Per-User Access**: Messages decrypted only by permitted users using `FHE.allow`.
-* **Decryption Token**: EIP-712 signed token allows frontend to request decryption from relayer.
-* **Quote Verification**: Quoted messages can be verified for authenticity via encrypted hash references.
+- **Node.js**: Version 20 or higher
+- **pnpm**: Package manager (or npm/yarn)
+- **MetaMask**: Browser extension for wallet integration
 
-### 📅 Metadata Management
+### Installation
 
-* **Timestamps**: Encrypted or plain, depending on use-case.
-* **Sender/Receiver**: Optionally encrypted addresses (`eaddress`).
-* **Sorting and Filtering**: Based on decrypted metadata or public info.
+1. **Clone the repository**
 
----
-
-## ⚖️ Contract Data Structures (Sample)
-
-```solidity
-struct EncryptedMessage {
-    address sender;
-    address receiver;
-    bytes contentCiphertext; // ciphertext stored on-chain; decrypted off-chain when authorized
-    ebool isRead;
-    euint64 quotedMsgId;
-    bool isDeleted;
-    bool isPublic;
-    uint256 timestamp;
-    string channel; // For group/DAO messages
-}
+```bash
+git clone https://github.com/nodelife88/confidential-chat
+cd confidential-chat
 ```
 
----
+2. **Install dependencies**
 
-## 🚀 Deployment Plan
+```bash
+pnpm install
+```
 
-🔧 Phase 1: Core Private Messaging
+3. **Build the SDK**
 
-Goal: Allow users to send and receive fully private 1:1 messages with basic FHE logic.
+The SDK will be built automatically during installation:
 
-Tasks:
+```bash
+pnpm sdk:build
+```
 
-Create `ConfidentialMessenger.sol` smart contract:
+### Running the Application
 
-- Define `EncryptedMessage` and `mapping(uint256 => EncryptedMessage) messages` with incremental `msgId` counter
-- Implement `sendMessage(...)` to accept encrypted inputs from the frontend/relayer
-- Implement `markAsRead(msgId)` using `FHE.select` to update `isRead`
+#### Option 1: Local Development
 
-Integrate Relayer SDK on the frontend:
+1. **Start Hardhat node** (in a separate terminal)
 
-- Prepare encrypted inputs for contract calls via the SDK
-- Use an EIP-712 signed authorization to request decryption from the relayer for permitted users
+```bash
+pnpm chain
+```
 
-Simple UI:
+2. **Deploy contracts to local network**
 
-- Compose/send, list, and display messages; decrypt per recipient when authorized
+```bash
+pnpm deploy:localhost
+```
 
-🏛️ Phase 2: DAO Chat & Public Disclosure
+This will:
+- Deploy `ConfidentialMessenger.sol` to localhost
+- Generate TypeScript bindings
+- Save contract addresses
 
-Goal: Enable private group discussions within a DAO and optional publicization after a vote.
+3. **Add Hardhat network to MetaMask**
 
-Tasks:
+```
+Name: Hardhat
+RPC URL: http://127.0.0.1:8545
+Chain ID: 31337
+Currency Symbol: ETH
+```
 
-- Add `channel` field and a mapping for DAO members
-- Implement `sendToChannel(...)` with membership checks
-- Implement `makeMessagePublic(msgId)` leveraging FHEVM publicization helpers (emit event for indexers/clients)
-- Integrate DAO voting (e.g., OpenZeppelin Governor): ERC20 or NFT voting
-- On quorum, call `makeMessagePublic`
+4. **Start the frontend**
 
-🖥️ Phase 3: UI/UX Enhancements
+```bash
+pnpm start
+```
 
-Goal: Improve UX with a modern, readable interface.
+Visit `http://localhost:3000` to access the application.
 
-Tasks:
+#### Option 2: Sepolia Testnet
 
-- Inbox / Outbox / Threads UI
-- Show read/unread, quoting, nested replies
-- View entire DAO discussion logs after publicization
+1. **Set up environment variables**
 
-📈 Phase 4: Optimization & Scaling
+```bash
+cd packages/fhevm-hardhat-template
+npx hardhat vars set MNEMONIC
+npx hardhat vars set RPC_URL
+```
 
-Goal: Optimize for performance and scale for real-world usage.
+2. **Deploy to Sepolia**
 
-Tasks:
+```bash
+pnpm deploy:sepolia
+```
 
-- Batch encryption/decryption to reduce gas and network overhead
-- Pagination for chat history
-- Run an off-chain indexer for fast metadata display (TheGraph or custom service)
-- Add send quotas or anti-spam mechanisms
+3. **Get testnet ETH**
 
----
+Request Sepolia ETH from [Alchemy Faucet](https://sepoliafaucet.com/) or [Coinbase Faucet](https://www.coinbase.com/faucets/ethereum-sepolia-faucet)
+
+4. **Start the frontend**
+
+```bash
+pnpm start
+```
+
+## 📁 Project Structure
+
+This is a monorepo managed with pnpm workspaces:
+
+```
+confidential-chat/
+├── packages/
+│   ├── fhevm-hardhat-template/    # Smart contract development
+│   │   ├── contracts/
+│   │   │   └── ConfidentialMessenger.sol
+│   │   ├── deploy/
+│   │   ├── test/
+│   │   └── hardhat.config.ts
+│   │
+│   ├── fhevm-sdk/                   # Custom FHEVM SDK
+│   │   ├── src/
+│   │   │   ├── core/               # Core FHE operations
+│   │   │   ├── react/              # React hooks
+│   │   │   └── storage/            # Storage utilities
+│   │   └── dist/                   # Built output
+│   │
+│   └── site/                        # Next.js frontend
+│       ├── app/                    # App Router pages
+│       ├── components/             # React components
+│       ├── hooks/                  # Custom hooks
+│       ├── services/               # Business logic
+│       ├── store/                  # Zustand stores
+│       └── abi/                    # Contract ABIs
+│
+├── scripts/
+│   └── generateTsAbis.ts          # ABI generation script
+│
+├── package.json
+├── pnpm-workspace.yaml
+└── tsconfig.json
+```
 
 ## 🛠️ Tech Stack
 
-* **Smart Contracts**: Solidity + `@fhevm/solidity/lib/FHE.sol`
-* **Frontend**: React + ethers.js + `@zama-fhe/relayer-sdk`
-* **Storage**: On-chain (no IPFS needed)
-* **Wallets**: Metamask / WalletConnect
+### Smart Contracts
+- **Solidity**: ^0.8.24
+- **@fhevm/solidity**: FHE cryptographic operations
+- **Hardhat**: Development environment and testing
+- **TypeChain**: TypeScript bindings generation
+- **hardhat-deploy**: Automated deployment system
 
----
+### Frontend
+- **Next.js**: ^15.2.4 (App Router)
+- **React**: ^19.2.0
+- **TypeScript**: ^5.9.2
+- **Tailwind CSS**: Utility-first CSS framework
+- **shadcn/ui**: Component library
+- **Wagmi + Viem**: Ethereum integration
+- **RainbowKit**: Wallet connection UI
+- **Zustand**: State management
 
-## 📌 Notes
+### Cryptography
+- **@zama-fhe/relayer-sdk**: FHE relayer integration
+- **FHEVM**: Fully Homomorphic Encryption Virtual Machine
+- **EIP-712**: Signing standard for authorization
 
-* All computation on encrypted data uses symbolic FHE handles.
-* Coprocessors handle heavy TFHE computation.
-* No FHE operations are in `view` or `pure` functions.
+## 🏗️ Architecture
 
----
+### Overview
 
-## 🧭 Architecture Overview
-
-- Wallet signs transactions and EIP-712 authorizations
-- Frontend prepares encrypted inputs via Relayer SDK
-- Relayer and coprocessor handle TFHE computation and decryption requests
-- Contract stores ciphertexts and uses symbolic FHE handles for logic (e.g., `FHE.select`)
-- Indexer listens to events for efficient UI rendering without accessing plaintext
-
----
-
-## 📣 Events
-
-Emit events to enable indexing and UI updates without decrypting content:
-
-```solidity
-event MessageSent(uint256 indexed msgId, address indexed sender, address indexed receiver, string channel, uint256 timestamp);
-event MessageRead(uint256 indexed msgId);
-event MessagePublicized(uint256 indexed msgId);
+```
+┌─────────────┐      ┌─────────────┐      ┌─────────────┐
+│   Browser   │      │   Wallet    │      │   Relayer   │
+│  (Frontend) │◄────►│  (MetaMask) │◄────►│  (Zama)     │
+└──────┬──────┘      └─────────────┘      └─────────────┘
+       │                                          ▲
+       │ 1. Encrypt (SDK)                         │
+       │ 2. Sign Transaction (Wallet)             │ 4. Decrypt Request
+       │                                          │
+       ▼                                          │
+    ┌───────────────────────────────────────────────┐
+    │          Ethereum Network                     │
+    │  ┌────────────────────────────────────────┐   │
+    │  │   ConfidentialMessenger.sol            │   │
+    │  │   - Store encrypted data               │   │
+    │  │   - Access control (FHE.allow)         │   │
+    │  │   - FHE operations                     │   │
+    │  └────────────────────────────────────────┘   │
+    └───────────────────────────────────────────────┘
 ```
 
+### Data Flow
+
+1. **Encryption**: Frontend uses `@zama-fhe/relayer-sdk` to encrypt message content
+2. **Transaction**: User signs transaction with wallet to send encrypted data
+3. **Storage**: Smart contract stores ciphertext on-chain
+4. **Access Control**: Contract grants decryption permissions to authorized users via `FHE.allow`
+5. **Decryption**: Relayer decrypts messages for authorized users upon request
+6. **Display**: Frontend displays decrypted messages to users
+
+### Important Notes
+
+⚠️ **Nonce Mismatch Error**: If you restart the Hardhat node, clear MetaMask activity:
+- MetaMask → Settings → Advanced → Clear Activity Tab
+
+⚠️ **View Function Cache**: If seeing stale data:
+- Restart your browser completely
+
+## 📝 Deployment
+
+### Mainnet Deployment
+
+1. **Prepare environment**:
+   ```bash
+   cd packages/fhevm-hardhat-template
+   npx hardhat vars set MNEMONIC
+   npx hardhat vars set RPC_URL
+   npx hardhat vars set ETHERSCAN_API_KEY
+   ```
+
+2. **Deploy to mainnet**:
+   ```bash
+   npx hardhat deploy --network mainnet
+   ```
+
+3. **Verify contract**:
+   ```bash
+   npx hardhat verify --network mainnet <CONTRACT_ADDRESS>
+   ```
+
+## 🗺️ Roadmap
+
+### ✅ Completed
+
+- [x] Core messaging functionality
+- [x] User profiles and authentication
+- [x] Direct and group conversations
+- [x] Encrypted message storage
+- [x] Message reactions
+- [x] Modern UI/UX
+- [x] Custom FHEVM SDK
+
+### 🔄 In Progress
+
+- [ ] Read receipts
+- [ ] Message quoting
+- [ ] Public disclosure mechanism
+- [ ] Batch encryption/decryption
+
+### 📅 Planned
+
+- [ ] Search functionality
+- [ ] Message attachments
+- [ ] Real-time notifications
+- [ ] Mobile optimization
+- [ ] TheGraph integration for indexing
+
+## 📄 License
+
+This project is licensed under the **BSD-3-Clause-Clear License**. See the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- **Zama**: For the FHEVM protocol and comprehensive documentation
+- **Hardhat**: For the excellent development environment
+- **Next.js**: For the powerful React framework
+- **RainbowKit & Wagmi**: For seamless Web3 integration
+
+## 📚 Resources
+
+- [FHEVM Documentation](https://docs.zama.ai/fhevm)
+- [FHEVM Hardhat Setup](https://docs.zama.ai/protocol/solidity-guides/getting-started/setup)
+- [Relayer SDK Guide](https://docs.zama.ai/protocol/relayer-sdk-guides/)
+- [Next.js Documentation](https://nextjs.org/docs)
+- [RainbowKit Docs](https://www.rainbowkit.com/)
+- [Wagmi Documentation](https://wagmi.sh/)
+
+## 🆘 Support
+
+- **Discord**: [Zama Community](https://discord.com/invite/zama)
+- **GitHub Issues**: Report bugs or request features
+- **Documentation**: [docs.zama.ai](https://docs.zama.ai)
+
 ---
 
-## 🗂️ Message IDs, Indexing, and Pagination
-
-- Use an auto-incrementing `msgId` counter
-- Store messages in `mapping(uint256 => EncryptedMessage) messages`
-- Maintain per-user indices for pagination:
-  - `mapping(address => uint256[]) inbox`
-  - `mapping(address => uint256[]) outbox`
-- For DAO channels, index by `channel` for efficient queries
-
----
-
-## 🧪 Quickstart (Dev)
-
-Contracts (example with Hardhat):
-
-1. `npm install`
-2. `npx hardhat compile`
-3. `npx hardhat test`
-4. `npx hardhat run scripts/deploy.ts --network <network>`
-
-Frontend:
-
-1. `cd frontend && npm install`
-2. Set env vars for RPC, relayer URL, and EIP-712 domain
-3. `npm run dev`
-
-Relayer integration:
-
-- Configure `@zama-fhe/relayer-sdk`
-- Prepare encrypted inputs for contract calls
-- Use EIP-712 signed authorizations for decryption requests
-
----
-
-## 🔐 Security & Threat Model
-
-- Relayer trust: restrict decryption to authorized recipients via EIP-712 authorizations
-- Replay protection: include nonces, expirations, and chain IDs in EIP-712 domain
-- Access control changes: define how `FHE.allow` is granted/revoked and how group membership affects historical messages
-- Anti-spam: quotas, fees, or allowlists to deter abuse
-- Data disclosure: `isPublic` and `MessagePublicized` events signal clients and indexers to allow public decryption
-
----
-
-## 📊 Future Ideas
-
-* AI moderator/chatbot (confidential input prompts)
-* Message search with encrypted keyword index
-* Confidential group voting within DAO channels
+**Built with ❤️ using [FHEVM](https://github.com/zama-ai/fhevm) by Zama**
