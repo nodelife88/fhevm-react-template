@@ -275,22 +275,30 @@ const ChatMessages: React.FC = () => {
   useEffect(() => {
     if (!contractTx || !address) return
 
-    const handleMessageSent = async (messageId: number, conversationId: number, from: string, to: string) => {
+    const handleMessageSent = async (messageId: number, conversationId: number, from: string) => {
       try {
         const currentConversationId = Number(getActiveConversation()?.id)
 
         if (currentConversationId === Number(conversationId)) {
-          if (to?.toLowerCase() === address?.toLowerCase()) {
+          // Add a small delay to ensure the message is indexed in the blockchain
+          await new Promise(resolve => setTimeout(resolve, 500))
+          
+          if (from?.toLowerCase() === address?.toLowerCase()) {
+            // User sent this message - replace optimistic message with real one
+            const currentMessages = getActiveMessages()
+            const encryptMessages = await fetchMessage(messageId)
+            const decryptMessage = await decryptContent(encryptMessages as EncryptedMessage)
+            if (decryptMessage) {
+              // Remove optimistic messages and add the real message
+              const realMessages = currentMessages.filter((m: any) => !m.isOptimistic)
+              setActiveMessages([...realMessages, decryptMessage])
+            }
+          } else {
+            // Someone else sent this message - just add it
             const encryptMessages = await fetchMessage(messageId)
             const decryptMessage = await decryptContent(encryptMessages as EncryptedMessage)
             if (decryptMessage) {
               setActiveMessages([...getActiveMessages(), decryptMessage])
-            }
-          } else if (from?.toLowerCase() === address?.toLowerCase()) {
-            const encryptMessages = await fetchActiveMessages(conversationId)
-            const decryptedMessages = await decryptMessages(encryptMessages ?? [])
-            if (decryptedMessages) {
-              setActiveMessages(decryptedMessages)
             }
           }
         } else if (currentConversationId === 0) {

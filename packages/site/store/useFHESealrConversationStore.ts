@@ -3,9 +3,20 @@ import { Message, EncryptedMessage, Conversation } from "@/types";
 import { useFHESealrStore } from "./useFHESealrStore";
 import { useFHESealrLoginStore } from "./useFHESealrLoginStore";
 
+export type SendingStatus = 
+  | "idle"
+  | "encrypting"
+  | "submitting";
+
 type SealrConversationStore = {
   loading: boolean;
   setLoading: (value: boolean) => void;
+  
+  sendingStatus: SendingStatus;
+  setSendingStatus: (status: SendingStatus) => void;
+  
+  isSendingMessage: boolean;
+  setIsSendingMessage: (value: boolean) => void;
 
   conversations: Conversation[];
   addConversation: (convo: Conversation) => void;
@@ -38,6 +49,12 @@ export const useFHESealrConversationStore =
   create<SealrConversationStore>((set, get) => ({
     loading: false,
     setLoading: (value: boolean) => set({ loading: value }),
+    
+    sendingStatus: "idle",
+    setSendingStatus: (status: SendingStatus) => set({ sendingStatus: status }),
+    
+    isSendingMessage: false,
+    setIsSendingMessage: (value: boolean) => set({ isSendingMessage: value }),
 
     conversations: [],
     getActiveConversation: () => get().activeConversation,
@@ -303,6 +320,8 @@ export const useFHESealrConversationStore =
       
       set({
         loading: false,
+        sendingStatus: "idle",
+        isSendingMessage: false,
         conversations: [],
         activeConversation: null,
         activeMessages: [],
