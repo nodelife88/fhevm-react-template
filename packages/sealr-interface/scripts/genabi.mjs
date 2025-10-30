@@ -7,7 +7,7 @@ const CONTRACT_NAME = "FHECounter";
 // <root>/packages/fhevm-hardhat-template
 const rel = "../fhevm-hardhat-template";
 
-// <root>/packages/site/components
+// <root>/packages/sealr-interface/components
 const outdir = path.resolve("./abi");
 
 if (!fs.existsSync(outdir)) {
