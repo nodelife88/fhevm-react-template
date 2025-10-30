@@ -2,7 +2,7 @@
   "name": "fhevm-react-template",
   "version": "0.3.0",
   "private": true,
-  "homepage": "https://github.com/zama-ai/fhevm-react-template/blob/main/packages/site/README.md",
+  "homepage": "https://github.com/zama-ai/fhevm-react-template/blob/main/packages/sealr-interface/README.md",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/zama-ai/fhevm-react-template.git"

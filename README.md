@@ -61,6 +61,20 @@ The SDK will be built automatically during installation:
 pnpm sdk:build
 ```
 
+### Environment variables
+
+Create a `.env.local` file in `packages/sealr-interface` with:
+
+```bash
+# Sepolia HTTPS RPC endpoint used for HTTP calls
+NEXT_PUBLIC_SEPOLIA_RPC_ENDPOINT=https://ethereum-sepolia-rpc.publicnode.com
+
+# Sepolia WebSocket RPC endpoint used for realtime updates
+NEXT_PUBLIC_SEPOLIA_WS_URL=wss://ethereum-sepolia-rpc.publicnode.com
+```
+
+Restart the dev server after changing env variables.
+
 ### Running the Application
 
 #### Option 1: Local Development
@@ -146,7 +160,7 @@ confidential-chat/
 │   │   │   └── storage/            # Storage utilities
 │   │   └── dist/                   # Built output
 │   │
-│   └── site/                        # Next.js frontend
+│   └── sealr-interface/                        # Next.js frontend
 │       ├── app/                    # App Router pages
 │       ├── components/             # React components
 │       ├── hooks/                  # Custom hooks
