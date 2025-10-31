@@ -24,7 +24,6 @@ export function LandingPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
       <header className="border-b border-border">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -61,7 +60,6 @@ export function LandingPage() {
         </div>
       </header>
 
-      {/* Hero Section */}
       <section className="container mx-auto px-4 py-24 md:py-32">
         <div className="max-w-4xl mx-auto text-center space-y-8">
           <div className="inline-block">
@@ -109,7 +107,6 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* Features Grid */}
       <section id="features" className="container mx-auto px-4 py-24">
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           <div className="p-6 space-y-4 bg-card border border-border rounded-lg hover:border-primary/50 transition-colors">
@@ -176,7 +173,6 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* Security Section */}
       <section id="security" className="container mx-auto px-4 py-24">
         <div className="max-w-3xl mx-auto text-center space-y-6">
           <h2 className="text-4xl md:text-5xl font-bold">Security at every step</h2>
@@ -200,7 +196,6 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* CTA Section */}
       <section className="container mx-auto px-4 py-24">
         <div className="p-12 md:p-16 text-center space-y-6 bg-card border border-border rounded-lg">
           <h2 className="text-3xl md:text-4xl font-bold">Ready to start messaging?</h2>
@@ -236,7 +231,6 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* Footer */}
       <footer className="border-t border-border">
         <div className="container mx-auto px-4 py-8">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
@@ -259,10 +253,8 @@ export function LandingPage() {
         </div>
       </footer>
 
-      {/* Profile Setup Modal */}
       <ProfileSetupModal isOpen={showProfileSetup} onClose={() => setShowProfileSetup(false)} />
 
-      {/* Loading overlay while checking profile/redirecting */}
       {isChecking && (
         <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center">
           <div className="flex flex-col items-center gap-4">

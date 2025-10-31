@@ -60,7 +60,7 @@ const ChatBotConversationList: React.FC = () => {
 
     debounceTimeoutRef.current = setTimeout(() => {
       setDebouncedSearch(value)
-    }, 100) // 100ms debounce delay for faster response
+    }, 100)
   }, [])
 
   const handleClearSearch = useCallback(() => {
@@ -104,7 +104,7 @@ const ChatBotConversationList: React.FC = () => {
 
   const renderConversation = useCallback(
     (conv: ConversationType): ReactElement => {
-      const isDirectChat = Number(conv.ctype) === 0 // Convert BigInt to number first
+      const isDirectChat = Number(conv.ctype) === 0
 
       if (isDirectChat) {
         return renderDirectChat(conv)
@@ -206,7 +206,6 @@ const ChatBotConversationList: React.FC = () => {
           </div>
         ) : (
           <div className="py-2">
-            {/* Unified Conversations - using ctype to determine rendering */}
             <div className="px-4 py-2 text-xs font-semibold text-muted-foreground uppercase tracking-wide">
               Conversations
             </div>

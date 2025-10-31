@@ -224,7 +224,6 @@ const ChatHeader: React.FC = () => {
           <div className="absolute -top-2 right-4 h-2 w-full bg-transparent" />
 
           <div className="p-4 space-y-4">
-            {/* Profile Section */}
             <div className="flex items-center gap-3 pb-4 border-b border-border">
               <div className="h-12 w-12 rounded-full overflow-hidden">
                 <Avatar name={profile?.name ?? ""} src={profile?.avatarUrl} />
@@ -235,7 +234,6 @@ const ChatHeader: React.FC = () => {
               </div>
             </div>
 
-            {/* Info Section */}
             <div className="space-y-3">
               <div className="flex items-center gap-3 text-sm">
                 <User className="h-4 w-4 text-muted-foreground" />
