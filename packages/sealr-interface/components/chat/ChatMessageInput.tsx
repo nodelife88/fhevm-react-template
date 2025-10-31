@@ -38,13 +38,11 @@ const ChatMessageInput: React.FC = () => {
 
   async function handleSubmit(message: string) {
     if (!contractAddress || !fheInstance || !ethersSigner) {
-      console.error("Cannot send message - missing required dependencies")
       return
     }
 
     const activeConversation = getActiveConversation()
     if (!activeConversation?.id) {
-      console.error("Cannot send message - no active conversation selected")
       return
     }
 
@@ -78,10 +76,8 @@ const ChatMessageInput: React.FC = () => {
       await sendMessage(messsagesEnc, reactionEnc)
 
     } catch (error) {
-      console.error("Error sending message:", error)
 
       if (error instanceof Error && (error.message?.includes("relayer") || error.message?.includes("network"))) {
-        console.error("Relayer or network error - message could not be sent")
       }
 
       const updatedMessages = getActiveMessages().filter((m: any) => !m.isOptimistic)

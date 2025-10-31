@@ -51,7 +51,6 @@ export const ProfileSetupModal: React.FC<ProfileSetupModalProps> = ({
       router.push('/chat');
       onClose();
     } catch (err) {
-      console.error('Error creating profile:', err);
       setError('Failed to create profile. Please try again.');
     }
   };
@@ -61,7 +60,6 @@ export const ProfileSetupModal: React.FC<ProfileSetupModalProps> = ({
       await disconnect();
       onClose();
     } catch (error) {
-      console.error("Error during disconnect:", error);
       onClose();
     }
   };

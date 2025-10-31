@@ -30,7 +30,6 @@ export const getEncryptionMethod = (internalType: string) => {
     case "externalEaddress":
       return "addAddress" as const;
     default:
-      console.warn(`Unknown internalType: ${internalType}, defaulting to add64`);
       return "add64" as const;
   }
 };
@@ -63,7 +62,6 @@ export const buildParamsFromAbi = (enc: EncryptResult, abi: any[], functionName:
       case "bool":
         return Boolean(raw);
       default:
-        console.warn(`Unknown ABI param type ${input.type}; passing as hex`);
         return toHex(raw);
     }
   });

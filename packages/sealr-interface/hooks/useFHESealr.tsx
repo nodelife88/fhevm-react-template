@@ -61,7 +61,6 @@ export const useFHESealrContracts = () => {
         setContracts(contractTx, contractView);
         setContractIsReady(true);
       } catch (error) {
-        console.error('Error initializing contracts:', error);
         setContractIsReady(false);
       }
     } else {

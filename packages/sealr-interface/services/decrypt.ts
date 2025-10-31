@@ -19,7 +19,6 @@ async function getDecryptDB(): Promise<any> {
     });
     return __decryptDbPromise;
   } catch (error) {
-    console.warn("Failed to initialize IndexedDB:", error);
     return undefined;
   }
 }
@@ -105,7 +104,7 @@ export async function decryptHandles(
 
         Object.assign(batchResults, decrypted);
       } catch (error) {
-        console.error(`Failed to decrypt handle ${item.handle}`, error);
+        // Silent failure
       }
     }
     
@@ -122,7 +121,7 @@ export async function decryptHandles(
     });
     void persistConversationCache(cacheKey, conversationCache);
   } catch (error) {
-    console.error('Error processing decryption batches:', error);
+    // Silent failure
   }
 
   return results;

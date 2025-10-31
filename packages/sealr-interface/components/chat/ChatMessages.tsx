@@ -47,7 +47,6 @@ const ChatMessages: React.FC = () => {
           setActiveMessages(updatedMessages)
         }
       } catch (error) {
-        console.error("Error changing reaction:", error)
       } finally {
         setLoading(false)
       }
@@ -96,7 +95,6 @@ const ChatMessages: React.FC = () => {
 
       const decryptedCount = Object.keys(decryptedHandles).length;
       if (decryptedCount === 0 && handles.length > 0) {
-        console.error("No handles could be decrypted - decryption may have failed");
         return null;
       }
 
@@ -105,7 +103,6 @@ const ChatMessages: React.FC = () => {
           .map((h: any) => {
             const decrypted = decryptedHandles[h];
             if (decrypted === undefined) {
-              console.warn(`Missing decrypted value for handle: ${h}`);
               return '';
             }
             return bigIntToString(BigInt(decrypted));
@@ -115,7 +112,6 @@ const ChatMessages: React.FC = () => {
         const reactionArray = [m.reactionEncrypted].map((h: any) => {
           const decrypted = decryptedHandles[h];
           if (decrypted === undefined) {
-            console.warn(`Missing decrypted reaction for handle: ${h}`);
             return '';
           }
           return bigIntToString(BigInt(decrypted));
@@ -135,13 +131,11 @@ const ChatMessages: React.FC = () => {
 
       return result
     } catch (error) {
-      console.error("Error in decryptMessages:", error)
 
       if (
         error instanceof Error &&
         (error.message?.includes("relayer") || error.message?.includes("network") || error.message?.includes("fetch"))
       ) {
-        console.error("Relayer or network error - messages cannot be decrypted")
       }
 
       return null
@@ -242,7 +236,6 @@ const ChatMessages: React.FC = () => {
           const decryptMessage = await decryptMessages(toDecrypt)
 
           if (decryptMessage === null) {
-            console.warn("Unable to decrypt messages - relayer or network may be experiencing issues")
             setDecryptionError(true)
             setActiveMessages([])
           } else {
@@ -254,7 +247,6 @@ const ChatMessages: React.FC = () => {
           setDecryptionError(false)
         }
       } catch (error) {
-        console.error("Error loading messages:", error)
         setActiveMessages([])
         setDecryptionError(true)
       }
@@ -296,7 +288,6 @@ const ChatMessages: React.FC = () => {
           setActiveConversation({ ...activeConversation, id: Number(conversationId) })
         }
       } catch (error) {
-        console.error("Error handling MessageSent:", error)
       }
     }
 
@@ -315,7 +306,6 @@ const ChatMessages: React.FC = () => {
           setActiveMessages(updatedMessages)
         }
       } catch (error) {
-        console.error("Error handling ReactionChanged:", error)
       }
     }
 
@@ -323,7 +313,6 @@ const ChatMessages: React.FC = () => {
       contractTx.on("MessageSent", handleMessageSent)
       contractTx.on("ReactionChanged", handleReactionChanged)
     } catch (error) {
-      console.error("Error setting up event listeners:", error)
     }
 
     return () => {
@@ -331,7 +320,6 @@ const ChatMessages: React.FC = () => {
         contractTx.off("MessageSent", handleMessageSent)
         contractTx.off("ReactionChanged", handleReactionChanged)
       } catch (error) {
-        console.error("Error removing event listeners:", error)
       }
     }
   }, [contractTx, address, activeConversation])
