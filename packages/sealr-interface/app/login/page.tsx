@@ -47,7 +47,6 @@ const Login: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
-      {/* Back button */}
       <Link
         href="/"
         className="absolute top-6 left-6 flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
@@ -57,7 +56,6 @@ const Login: React.FC = () => {
       </Link>
 
       <div className="w-full max-w-md">
-        {/* Logo and branding */}
         <div className="flex flex-col items-center mb-8">
           <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mb-4">
             <Shield className="w-8 h-8 text-primary" />
@@ -66,7 +64,6 @@ const Login: React.FC = () => {
           <p className="text-muted-foreground text-center">Enter your name to start secure messaging</p>
         </div>
 
-        {/* Login form */}
         <div className="bg-card border border-border rounded-lg p-6 space-y-4">
           <div className="space-y-2">
             <label className="text-sm font-medium text-foreground">Display Name</label>
@@ -99,7 +96,6 @@ const Login: React.FC = () => {
         </div>
       </div>
 
-      {/* Loading overlay */}
       {loading && (
         <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center">
           <div className="bg-card border border-border rounded-lg p-6 flex flex-col items-center gap-4">
