@@ -40,7 +40,6 @@ export const useFHESealrLoginStore = create<FHESealrLoginStore>(
         set({ error: exists ? "This name already exists." : null });
         return exists;
       } catch (err) {
-        console.error("Check name failed", err);
         return false;
       }
     },
@@ -57,7 +56,6 @@ export const useFHESealrLoginStore = create<FHESealrLoginStore>(
 
         await tx.wait();
       } catch (err: any) {
-        console.error("Create profile failed", err);
         throw err;
       } finally {
         set({ loading: false });
@@ -79,7 +77,6 @@ export const useFHESealrLoginStore = create<FHESealrLoginStore>(
         await get().getProfile();
         await get().getProfiles();
       } catch (err: any) {
-        console.error("Update profile failed", err);
         throw err;
       } finally {
         set({ loading: false });
@@ -106,7 +103,6 @@ export const useFHESealrLoginStore = create<FHESealrLoginStore>(
         set({ profile: result });
         return result;
       } catch (err) {
-        console.error("Get profile failed", err);
         return null;
       }
     },
@@ -129,7 +125,6 @@ export const useFHESealrLoginStore = create<FHESealrLoginStore>(
         set({ profiles: result });
         return result;
       } catch (err) {
-        console.error("Get all profiles failed", err);
         return [];
       }
     },

@@ -60,7 +60,6 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
       await getProfile();
       onClose();
     } catch (err) {
-      console.error('Error updating profile:', err);
       setError('Failed to update profile. Please try again.');
     }
   };

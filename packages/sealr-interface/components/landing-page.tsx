@@ -211,7 +211,6 @@ export function LandingPage() {
                 try {
                   await disconnect()
                 } catch (error) {
-                  console.error("Error during disconnect:", error)
                 }
               }}
             >

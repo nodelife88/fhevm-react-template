@@ -53,7 +53,7 @@ const Chat: React.FC = () => {
         await fetchConversations()
       }
     } catch (error) {
-      console.error("Error handling MessageSent in chat page:", error)
+      // Silent failure
     }
   }, [conversations.length, fetchConversations])
 
@@ -63,14 +63,14 @@ const Chat: React.FC = () => {
     try {
       contractTx.on("MessageSent", handleMessageSent)
     } catch (error) {
-      console.error("Error setting up MessageSent listener:", error)
+      // Silent failure
     }
 
     return () => {
       try {
         contractTx.off("MessageSent", handleMessageSent)
       } catch (error) {
-        console.error("Error removing MessageSent listener:", error)
+        // Silent failure
       }
     }
   }, [contractTx, handleMessageSent])

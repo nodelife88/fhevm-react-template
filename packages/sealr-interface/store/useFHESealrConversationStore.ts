@@ -66,16 +66,13 @@ export const useFHESealrConversationStore =
       try {
         const { contractTx } = useFHESealrStore.getState();
         if (!contractTx) {
-          console.error('Contract not ready');
           return false;
         }
 
         const tx = await contractTx.createGroupConversation(name, members);
         await tx.wait();
-        console.log('Group created successfully');
         return true;
       } catch (err) {
-        console.error("Create group failed", err);
         return false;
       }
     },
@@ -83,13 +80,11 @@ export const useFHESealrConversationStore =
       try {
         const { contractTx } = useFHESealrStore.getState();
         if (!contractTx) {
-          console.error('Contract not ready');
           return false;
         }
 
         const tx = await contractTx.deleteConversation(conversationId);
         await tx.wait();
-        console.log('Conversation deleted successfully');
         
         const { conversations } = get();
         const updatedConversations = conversations.filter(conv => conv.id !== conversationId);
@@ -102,7 +97,6 @@ export const useFHESealrConversationStore =
         
         return true;
       } catch (err) {
-        console.error("Delete conversation failed", err);
         return false;
       }
     },
@@ -111,7 +105,6 @@ export const useFHESealrConversationStore =
       const { lastFetchTime, fetchTimeout } = get()
       
       if (now - lastFetchTime < 5000) {
-        console.log('Skipping fetchConversations - too recent')
         return get().conversations
       }
       
@@ -123,39 +116,19 @@ export const useFHESealrConversationStore =
         const { contractView } = useFHESealrStore.getState();
         const { profile } = useFHESealrLoginStore.getState();
 
-        console.log('fetchConversations - checking dependencies:', {
-          hasContractView: !!contractView,
-          hasProfile: !!profile,
-          profileWallet: profile?.wallet,
-          lastFetchTime: new Date(lastFetchTime).toISOString()
-        });
-
         if (!contractView || !profile?.wallet) {
-          console.warn('Missing dependencies for fetchConversations');
           return [];
         }
 
-        console.log('Calling myConversations with wallet:', profile.wallet);
         const rawConversations = await contractView?.myConversations(profile?.wallet);
-        console.log('Raw conversations from contract:', rawConversations);
         
         if (!rawConversations || !Array.isArray(rawConversations)) {
-          console.warn('Invalid conversations data:', rawConversations);
           set({ conversations: [], lastFetchTime: now });
           return [];
         }
 
         const mappedConversations: Conversation[] = await Promise.all(rawConversations.map(async (rawConv: any) => {
           const isDirect = Number(rawConv.ctype) === 0;
-          console.log('Mapping conversation from contract:', {
-            id: rawConv.id,
-            ctype: rawConv.ctype,
-            name: rawConv.name,
-            creator: rawConv.creator,
-            members: rawConv.members,
-            membersLength: rawConv.members?.length,
-            isDirect
-          });
           
           if (isDirect) {
             const otherMember = rawConv.members.find((member: string) => 
@@ -169,17 +142,8 @@ export const useFHESealrConversationStore =
                 otherPersonName = otherProfile.name;
               }
             } catch (err) {
-              console.warn("Failed to fetch other person's profile:", err);
+              // Silent failure
             }
-            
-            console.log('Direct conversation mapping:', {
-              currentUser: profile.wallet,
-              currentUserName: profile.name,
-              otherMember,
-              contractName: rawConv.name,
-              otherPersonName,
-              members: rawConv.members
-            });
             
             return {
               id: Number(rawConv.id),
@@ -210,12 +174,10 @@ export const useFHESealrConversationStore =
         }));
 
         const sortedConversations = [...mappedConversations].sort((a: Conversation, b: Conversation) => (Number(b.createdAt ?? 0)) - (Number(a.createdAt ?? 0)));
-        console.log('Mapped and sorted conversations:', sortedConversations);
         set({ conversations: sortedConversations, lastFetchTime: now });
 
         return sortedConversations;
       } catch (err) {
-        console.error("Fetch conversations failed", err);
         set({ conversations: [], lastFetchTime: now });
         return [];
       }
@@ -229,13 +191,10 @@ export const useFHESealrConversationStore =
           throw new Error("Contract not initialized");
         }
 
-        console.log("Getting or creating direct conversation with:", toAddress);
         const conversationId = await contractTx.getOrCreateDirectConversation(toAddress);
-        console.log("Direct conversation ID:", conversationId.toString());
         
         return Number(conversationId);
       } catch (err) {
-        console.error("Get or create direct conversation failed", err);
         throw err;
       }
     },
@@ -253,7 +212,6 @@ export const useFHESealrConversationStore =
         const messages = await contractView?.getMessages(conversationId);
         return messages || [];
       } catch (err) {
-        console.error("Get active messages failed", err);
         return [];
       }
     },
@@ -275,7 +233,6 @@ export const useFHESealrConversationStore =
         )
         await tx.wait();
       } catch (err) {
-        console.error("Send message failed", err);
         throw err; 
       }
     },
@@ -283,14 +240,12 @@ export const useFHESealrConversationStore =
       try {
         const { contractView } = useFHESealrStore.getState();
         if (!contractView) {
-          console.error("Contract view not available");
           return undefined;
         }
         
         const message = await contractView.getMessage(messageId);
         return message;
       } catch (err) {
-        console.error("Fetch message failed", err);
         return undefined;
       }
     },
@@ -298,16 +253,13 @@ export const useFHESealrConversationStore =
       try {
         const { contractTx } = useFHESealrStore.getState();
         if (!contractTx) {
-          console.error("Contract transaction not available");
           return false;
         }
         
         const tx = await contractTx.changeReaction(messageId, reactionEnc.ciphertext, reactionEnc.proof);
         await tx.wait();
-        console.log("Reaction changed successfully");
         return true;
       } catch (err) {
-        console.error("Reaction message failed", err);
         return false;
       }
     },
