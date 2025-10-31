@@ -43,7 +43,7 @@ export const ProfileSetupModal: React.FC<ProfileSetupModalProps> = ({
     }
 
     if (await nameExists(name)) {
-      return; // Error is set in nameExists function
+      return;
     }
 
     try {
@@ -71,7 +71,6 @@ export const ProfileSetupModal: React.FC<ProfileSetupModalProps> = ({
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
       <div className="w-full max-w-md bg-background border border-border rounded-lg p-6 space-y-6">
-        {/* Header */}
         <div className="text-center">
           <div className="flex items-center justify-center mb-4">
             <FaUser className="h-8 w-8 text-primary" />
@@ -84,7 +83,6 @@ export const ProfileSetupModal: React.FC<ProfileSetupModalProps> = ({
           </p>
         </div>
 
-        {/* Content */}
         <div className="space-y-4">
           <div className="flex items-center border border-input rounded-md overflow-hidden h-11 bg-background">
             <div className="px-3 text-muted-foreground flex items-center">
@@ -123,12 +121,10 @@ export const ProfileSetupModal: React.FC<ProfileSetupModalProps> = ({
           </Button>
         </div>
 
-        {/* Error Message */}
         {error && (
           <p className="text-sm text-destructive text-center">{error}</p>
         )}
 
-        {/* Action Buttons */}
         <div className="flex flex-col gap-3">
           <Button
             onClick={handleDisconnect}

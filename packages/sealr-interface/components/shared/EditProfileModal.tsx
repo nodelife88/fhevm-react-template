@@ -33,13 +33,11 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
     getProfile 
   } = useFHESealrLoginStore();
 
-  // Initialize form with current profile data
   useEffect(() => {
     if (profile && isOpen) {
       setName(profile.name || "");
       setAvatarUrl(profile.avatarUrl || "");
     } else if (isOpen && !profile) {
-      // Reset form if profile is not available
       setName("");
       setAvatarUrl("");
     }
@@ -51,16 +49,15 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
       return;
     }
 
-    // Only check name exists if name has changed
     if (name !== profile?.name) {
       if (await nameExists(name)) {
-        return; // Error is set in nameExists function
+        return;
       }
     }
 
     try {
       await updateProfile(name, avatarUrl.trim());
-      await getProfile(); // Refresh profile
+      await getProfile();
       onClose();
     } catch (err) {
       console.error('Error updating profile:', err);
@@ -73,7 +70,6 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
       <div className="w-full max-w-md bg-background border border-border rounded-lg p-6 space-y-6">
-        {/* Header */}
         <div className="text-center">
           <div className="flex items-center justify-center mb-4">
             <FaUser className="h-8 w-8 text-primary" />
@@ -86,7 +82,6 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
           </p>
         </div>
 
-        {/* Content */}
         <div className="space-y-4">
           <div className="flex items-center border border-input rounded-md overflow-hidden h-11 bg-background">
             <div className="px-3 text-muted-foreground flex items-center">
@@ -125,12 +120,10 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
           </Button>
         </div>
 
-        {/* Error Message */}
         {error && (
           <p className="text-sm text-destructive text-center">{error}</p>
         )}
 
-        {/* Action Buttons */}
         <div className="flex flex-col gap-3">
           <Button
             variant="outline"

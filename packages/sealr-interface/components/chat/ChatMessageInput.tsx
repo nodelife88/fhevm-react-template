@@ -50,7 +50,7 @@ const ChatMessageInput: React.FC = () => {
 
     setIsSendingMessage(true)
     setValue("")
-    setSendingStatus("encrypting") // Set status immediately
+    setSendingStatus("encrypting")
 
     const optimisticMessage = {
       id: Date.now(),
@@ -66,7 +66,6 @@ const ChatMessageInput: React.FC = () => {
     setActiveMessages([...currentMessages, optimisticMessage])
 
     try {
-      // Step 1: Encrypting message and reaction (status already set to "encrypting")
       const messsagesEnc = await encryptChunksForContract(contractAddress, fheInstance, ethersSigner, message)
       const reactionEnc = await encryptStringForContract(
         contractAddress,
@@ -75,11 +74,9 @@ const ChatMessageInput: React.FC = () => {
         String(ReactionType.NONE),
       )
 
-      // Step 2: Submit transaction to blockchain
       setSendingStatus("submitting")
       await sendMessage(messsagesEnc, reactionEnc)
 
-      // Don't remove the optimistic message yet - let the event handler handle it
     } catch (error) {
       console.error("Error sending message:", error)
 

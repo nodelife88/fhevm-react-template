@@ -94,7 +94,6 @@ const ChatMessages: React.FC = () => {
 
       const decryptedHandles = await decryptHandles(fheInstance, handles ?? [], sig, String(activeConversation?.id))
 
-      // Check if we have enough decrypted handles to proceed
       const decryptedCount = Object.keys(decryptedHandles).length;
       if (decryptedCount === 0 && handles.length > 0) {
         console.error("No handles could be decrypted - decryption may have failed");
@@ -231,7 +230,7 @@ const ChatMessages: React.FC = () => {
   useEffect(() => {
     async function loadMessages() {
       setLoading(true)
-      setDecryptionError(false) // Reset error state when loading new messages
+      setDecryptionError(false)
 
       try {
         const encryptMessages = await fetchActiveMessages(Number(activeConversation?.id) ?? 0)
@@ -243,8 +242,6 @@ const ChatMessages: React.FC = () => {
           const decryptMessage = await decryptMessages(toDecrypt)
 
           if (decryptMessage === null) {
-            // Don't clear the active conversation if decryption fails
-            // Just show an empty message list with a warning
             console.warn("Unable to decrypt messages - relayer or network may be experiencing issues")
             setDecryptionError(true)
             setActiveMessages([])
@@ -253,13 +250,11 @@ const ChatMessages: React.FC = () => {
             setActiveMessages(decryptMessage)
           }
         } else {
-          // No messages to decrypt - this is normal for an empty conversation
           setActiveMessages([])
           setDecryptionError(false)
         }
       } catch (error) {
         console.error("Error loading messages:", error)
-        // Don't clear the active conversation on error
         setActiveMessages([])
         setDecryptionError(true)
       }
@@ -280,21 +275,17 @@ const ChatMessages: React.FC = () => {
         const currentConversationId = Number(getActiveConversation()?.id)
 
         if (currentConversationId === Number(conversationId)) {
-          // Add a small delay to ensure the message is indexed in the blockchain
           await new Promise(resolve => setTimeout(resolve, 500))
           
           if (from?.toLowerCase() === address?.toLowerCase()) {
-            // User sent this message - replace optimistic message with real one
             const currentMessages = getActiveMessages()
             const encryptMessages = await fetchMessage(messageId)
             const decryptMessage = await decryptContent(encryptMessages as EncryptedMessage)
             if (decryptMessage) {
-              // Remove optimistic messages and add the real message
               const realMessages = currentMessages.filter((m: any) => !m.isOptimistic)
               setActiveMessages([...realMessages, decryptMessage])
             }
           } else {
-            // Someone else sent this message - just add it
             const encryptMessages = await fetchMessage(messageId)
             const decryptMessage = await decryptContent(encryptMessages as EncryptedMessage)
             if (decryptMessage) {

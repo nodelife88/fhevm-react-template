@@ -76,7 +76,6 @@ export const useFHESealrLoginStore = create<FHESealrLoginStore>(
 
         await tx.wait();
         
-        // Refresh profile and profiles list after update
         await get().getProfile();
         await get().getProfiles();
       } catch (err: any) {
