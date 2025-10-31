@@ -71,6 +71,24 @@ contract ConfidentialMessenger is SepoliaConfig {
         _allUsers.push(msg.sender);
     }
 
+    function updateProfile(string memory name, string memory avatarUrl) external onlyProfile {
+        require(bytes(name).length > 0, "Empty name");
+        
+        UserProfile storage profile = profiles[msg.sender];
+        string memory oldName = profile.name;
+        
+        // If name changed, check availability and update mapping
+        if (keccak256(bytes(name)) != keccak256(bytes(oldName))) {
+            require(_nameToAddress[name] == address(0), "Name taken");
+            delete _nameToAddress[oldName];
+            _nameToAddress[name] = msg.sender;
+        }
+        
+        // Update profile
+        profile.name = name;
+        profile.avatarUrl = avatarUrl;
+    }
+
     function getProfile() external view returns (UserProfile memory) {
         require(bytes(profiles[msg.sender].name).length > 0, "Profile not found");
         return profiles[msg.sender];

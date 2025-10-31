@@ -102,7 +102,7 @@ const CreateGroupModal: React.FC<CreateGroupModalProps> = ({ isOpen, onClose }) 
                     key={member.wallet}
                     className="flex items-center gap-1.5 bg-primary/10 text-primary px-2 py-1 rounded-full text-xs max-w-full"
                   >
-                    <Avatar name={member.name} size={20} />
+                    <Avatar name={member.name} src={member.avatarUrl} size={20} />
                     <span className="truncate max-w-[80px]">{member.name}</span>
                     <button
                       onClick={() => handleMemberToggle(member.wallet)}
@@ -148,7 +148,7 @@ const CreateGroupModal: React.FC<CreateGroupModalProps> = ({ isOpen, onClose }) 
                       selectedMembers.includes(user.wallet) ? 'bg-primary/10' : ''
                     }`}
                   >
-                    <Avatar name={user.name} size={32} />
+                    <Avatar name={user.name} src={user.avatarUrl} size={32} />
                     <div className="flex-1 min-w-0">
                       <p className="font-medium truncate text-sm">{user.name}</p>
                       <p className="text-xs text-muted-foreground truncate">{user.wallet}</p>
