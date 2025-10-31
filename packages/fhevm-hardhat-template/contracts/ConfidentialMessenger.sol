@@ -102,6 +102,10 @@ contract ConfidentialMessenger is SepoliaConfig {
         return allProfiles;
     }
 
+    function nameExists(string memory name) external view returns (bool) {
+        return _nameToAddress[name] != address(0);
+    }
+
     function getProfileByAddress(address userAddress) external view returns (UserProfile memory) {
         require(bytes(profiles[userAddress].name).length > 0, "Profile not found");
         return profiles[userAddress];
