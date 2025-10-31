@@ -1,29 +1,24 @@
 "use client";
 
-import React, { useState } from "react";
-import { useRouter } from "next/navigation";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { FaUser } from "react-icons/fa";
-import { LogOut } from "lucide-react";
 import { useFHESealrContracts } from "@/hooks/useFHESealr";
 import { useFHESealrStore } from "@/store/useFHESealrStore";
 import { useFHESealrLoginStore } from "@/store/useFHESealrLoginStore";
-import { useDisconnect } from "@/utils/auth";
 
-interface ProfileSetupModalProps {
+interface EditProfileModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-export const ProfileSetupModal: React.FC<ProfileSetupModalProps> = ({
+export const EditProfileModal: React.FC<EditProfileModalProps> = ({
   isOpen,
   onClose,
 }) => {
-  const router = useRouter();
   const [name, setName] = useState("");
   const [avatarUrl, setAvatarUrl] = useState("");
-  const { disconnect } = useDisconnect();
 
   useFHESealrContracts();
 
@@ -31,38 +26,45 @@ export const ProfileSetupModal: React.FC<ProfileSetupModalProps> = ({
   const { 
     loading, 
     error, 
+    profile,
     nameExists, 
-    createProfile,
-    setError 
+    updateProfile,
+    setError,
+    getProfile 
   } = useFHESealrLoginStore();
 
-  const handleCreateProfile = async () => {
+  // Initialize form with current profile data
+  useEffect(() => {
+    if (profile && isOpen) {
+      setName(profile.name || "");
+      setAvatarUrl(profile.avatarUrl || "");
+    } else if (isOpen && !profile) {
+      // Reset form if profile is not available
+      setName("");
+      setAvatarUrl("");
+    }
+  }, [profile, isOpen]);
+
+  const handleUpdateProfile = async () => {
     if (!name.trim()) {
       setError('Please enter a name');
       return;
     }
 
-    if (await nameExists(name)) {
-      return; // Error is set in nameExists function
+    // Only check name exists if name has changed
+    if (name !== profile?.name) {
+      if (await nameExists(name)) {
+        return; // Error is set in nameExists function
+      }
     }
 
     try {
-      await createProfile(name, avatarUrl.trim());
-      router.push('/chat');
+      await updateProfile(name, avatarUrl.trim());
+      await getProfile(); // Refresh profile
       onClose();
     } catch (err) {
-      console.error('Error creating profile:', err);
-      setError('Failed to create profile. Please try again.');
-    }
-  };
-
-  const handleDisconnect = async () => {
-    try {
-      await disconnect();
-      onClose();
-    } catch (error) {
-      console.error("Error during disconnect:", error);
-      onClose();
+      console.error('Error updating profile:', err);
+      setError('Failed to update profile. Please try again.');
     }
   };
 
@@ -77,10 +79,10 @@ export const ProfileSetupModal: React.FC<ProfileSetupModalProps> = ({
             <FaUser className="h-8 w-8 text-primary" />
           </div>
           <h2 className="text-2xl font-semibold text-foreground">
-            Create Your Profile
+            Edit Your Profile
           </h2>
           <p className="text-muted-foreground mt-2">
-            Choose a name for your profile to get started
+            Update your name and avatar URL
           </p>
         </div>
 
@@ -96,7 +98,7 @@ export const ProfileSetupModal: React.FC<ProfileSetupModalProps> = ({
               placeholder="Your name"
               className="w-full py-2 px-2 focus:outline-none text-foreground text-sm bg-transparent border-0"
               onChange={(e) => setName(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleCreateProfile()}
+              onKeyDown={(e) => e.key === 'Enter' && handleUpdateProfile()}
             />
           </div>
 
@@ -110,16 +112,16 @@ export const ProfileSetupModal: React.FC<ProfileSetupModalProps> = ({
               placeholder="Avatar URL (optional)"
               className="w-full py-2 px-2 focus:outline-none text-foreground text-sm bg-transparent border-0"
               onChange={(e) => setAvatarUrl(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleCreateProfile()}
+              onKeyDown={(e) => e.key === 'Enter' && handleUpdateProfile()}
             />
           </div>
 
           <Button
-            onClick={handleCreateProfile}
-            disabled={loading || !name.trim()}
+            onClick={handleUpdateProfile}
+            disabled={loading || !name.trim() || !contractIsReady}
             className="w-full h-11"
           >
-            {loading ? 'Creating...' : 'Create Profile'}
+            {loading ? 'Updating...' : 'Update Profile'}
           </Button>
         </div>
 
@@ -130,16 +132,6 @@ export const ProfileSetupModal: React.FC<ProfileSetupModalProps> = ({
 
         {/* Action Buttons */}
         <div className="flex flex-col gap-3">
-          <Button
-            onClick={handleDisconnect}
-            variant="outline"
-            disabled={loading}
-            className="w-full justify-start gap-2 hover:bg-destructive hover:text-destructive-foreground hover:border-destructive bg-transparent"
-          >
-            <LogOut className="h-4 w-4" />
-            Disconnect Wallet
-          </Button>
-          
           <Button
             variant="outline"
             onClick={onClose}
@@ -153,3 +145,6 @@ export const ProfileSetupModal: React.FC<ProfileSetupModalProps> = ({
     </div>
   );
 };
+
+export default EditProfileModal;
+

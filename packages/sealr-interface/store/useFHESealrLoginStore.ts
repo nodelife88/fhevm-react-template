@@ -17,6 +17,7 @@ type FHESealrLoginStore = {
   getProfile: () => Promise<UserProfile | null>;
   getProfiles: () => Promise<UserProfile[] | []>;
   createProfile: (name: string, avatarUrl?: string) => Promise<void>;
+  updateProfile: (name: string, avatarUrl?: string) => Promise<void>;
   clearState: () => void;
 };
 
@@ -57,6 +58,29 @@ export const useFHESealrLoginStore = create<FHESealrLoginStore>(
         await tx.wait();
       } catch (err: any) {
         console.error("Create profile failed", err);
+        throw err;
+      } finally {
+        set({ loading: false });
+      }
+    },
+
+    updateProfile: async (name: string, avatarUrl: string = ""): Promise<void> => {
+        const { contractTx } = useFHESealrStore.getState();
+      set({ loading: true, error: null });
+
+      try {
+        const tx: TransactionResponse = await contractTx?.updateProfile(
+          name,
+          avatarUrl
+        );
+
+        await tx.wait();
+        
+        // Refresh profile and profiles list after update
+        await get().getProfile();
+        await get().getProfiles();
+      } catch (err: any) {
+        console.error("Update profile failed", err);
         throw err;
       } finally {
         set({ loading: false });

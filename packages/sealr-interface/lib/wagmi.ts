@@ -8,7 +8,7 @@ import {
   metaMaskWallet,
   walletConnectWallet,
 } from "@rainbow-me/rainbowkit/wallets";
-import { getBestWebSocketUrl, RPC_CONFIG } from "./config";
+import { getBestWebSocketUrl } from "./config";
 
 const projectId = process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || "demo";
 
