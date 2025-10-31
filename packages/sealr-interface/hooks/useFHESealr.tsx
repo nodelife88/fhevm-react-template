@@ -1,6 +1,5 @@
 import { useEffect } from "react";
 import { ethers } from "ethers";
-import { RPC_ENDPOINT } from "@/constants";
 import { FHESealrABI } from "@/abi/FHESealrABI";
 import { FHESealrAddresses } from "@/abi/FHESealrAddresses";
 

@@ -1,6 +1,5 @@
 export const RPC_CONFIG = {
   SEPOLIA_WS_URL: process.env.NEXT_PUBLIC_SEPOLIA_WS_URL || "wss://ethereum-sepolia-rpc.publicnode.com",
-  SEPOLIA_HTTP_URL: process.env.NEXT_PUBLIC_SEPOLIA_RPC_ENDPOINT || "https://ethereum-sepolia-rpc.publicnode.com",
   
   ALTERNATIVE_WS_URLS: [
     "wss://ethereum-sepolia-rpc.publicnode.com", 

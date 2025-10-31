@@ -4,13 +4,14 @@ import type React from "react"
 import { useState, useEffect, useRef, useCallback } from "react"
 import { ethers } from "ethers"
 import { useRouter } from "next/navigation"
-import { Search, LogOut, User, Wallet, Users, Plus } from "lucide-react"
+import { Search, LogOut, User, Wallet, Users, Plus, Settings } from "lucide-react"
 import Image from "next/image"
 import { useDisconnect } from "wagmi"
 
 import Avatar from "@/components/shared/Avatar"
 import Conversation from "@/components/shared/Conversation"
 import CreateGroupModal from "@/components/chat/CreateGroupModal"
+import EditProfileModal from "@/components/shared/EditProfileModal"
 import { useFHESealrLoginStore } from "@/store/useFHESealrLoginStore"
 import { useRainbowKitEthersSigner } from "@/hooks/useRainbowKitEthersSigner"
 import { useFHESealrConversationStore } from "@/store/useFHESealrConversationStore"
@@ -24,6 +25,7 @@ const ChatHeader: React.FC = () => {
   const [isFocused, setIsFocused] = useState<boolean>(false)
   const [balance, setBalance] = useState<string>("")
   const [isCreateGroupOpen, setIsCreateGroupOpen] = useState<boolean>(false)
+  const [isEditProfileOpen, setIsEditProfileOpen] = useState<boolean>(false)
   const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
   const { push } = useRouter()
@@ -186,7 +188,7 @@ const ChatHeader: React.FC = () => {
                       className="hover:bg-secondary/50 transition-colors cursor-pointer"
                     >
                       <Conversation name={userProfile.name} info={userProfile.wallet}>
-                        <Avatar name={userProfile.name} />
+                        <Avatar name={userProfile.name} src={userProfile.avatarUrl} />
                       </Conversation>
                     </div>
                   ))}
@@ -210,7 +212,7 @@ const ChatHeader: React.FC = () => {
       <div className="relative group">
         <div className="flex items-center gap-3 cursor-pointer">
           <div className="h-9 w-9 rounded-full overflow-hidden ring-2 ring-border hover:ring-primary transition-all">
-            <Avatar name={profile?.name ?? ""} />
+            <Avatar name={profile?.name ?? ""} src={profile?.avatarUrl} />
           </div>
           <div className="hidden md:flex flex-col">
             <span className="text-sm font-medium">{profile?.name}</span>
@@ -225,7 +227,7 @@ const ChatHeader: React.FC = () => {
             {/* Profile Section */}
             <div className="flex items-center gap-3 pb-4 border-b border-border">
               <div className="h-12 w-12 rounded-full overflow-hidden">
-                <Avatar name={profile?.name ?? ""} />
+                <Avatar name={profile?.name ?? ""} src={profile?.avatarUrl} />
               </div>
               <div className="flex-1 min-w-0">
                 <p className="font-semibold truncate">{profile?.name}</p>
@@ -249,6 +251,15 @@ const ChatHeader: React.FC = () => {
             </div>
 
             <Button
+              onClick={() => setIsEditProfileOpen(true)}
+              variant="outline"
+              className="w-full justify-start gap-2"
+            >
+              <Settings className="h-4 w-4" />
+              Edit Profile
+            </Button>
+
+            <Button
               onClick={onLogout}
               variant="outline"
               className="w-full justify-start gap-2 hover:bg-destructive hover:text-destructive-foreground hover:border-destructive bg-transparent"
@@ -263,6 +274,11 @@ const ChatHeader: React.FC = () => {
       <CreateGroupModal 
         isOpen={isCreateGroupOpen} 
         onClose={() => setIsCreateGroupOpen(false)} 
+      />
+      
+      <EditProfileModal 
+        isOpen={isEditProfileOpen} 
+        onClose={() => setIsEditProfileOpen(false)} 
       />
     </header>
   )
