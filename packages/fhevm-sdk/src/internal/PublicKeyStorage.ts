@@ -52,7 +52,6 @@ async function _getDB(): Promise<any> {
     });
     return __dbPromise;
   } catch (error) {
-    console.warn("Failed to initialize IndexedDB:", error);
     return undefined;
   }
 }

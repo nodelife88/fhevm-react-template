@@ -82,7 +82,6 @@ const ChatHeader: React.FC = () => {
       setQuery("");
       setIsFocused(false);
     } catch (error) {
-      console.error("Error creating direct conversation:", error);
       const convo: ConversationType = {
         id: 0,
         receiverName: userProfile.name,
@@ -123,7 +122,6 @@ const ChatHeader: React.FC = () => {
       await disconnect();
       push("/");
     } catch (error) {
-      console.error("Error during logout:", error);
       push("/");
     }
   };

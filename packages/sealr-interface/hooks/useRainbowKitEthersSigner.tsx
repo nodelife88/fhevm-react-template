@@ -14,17 +14,9 @@ export const useRainbowKitEthersSigner = () => {
   const chainId = config.chains[0]?.id || 11155111
 
   useEffect(() => {
-    console.log('useRainbowKitEthersSigner - checking conditions:', {
-      hasWalletClient: !!walletClient,
-      isConnected,
-      address,
-      walletClientType: typeof walletClient
-    })
-
     if (walletClient && isConnected && address) {
       const setup = async () => {
         try {
-          console.log('Creating ethers signer...')
           const eip1193 = walletClient.transport
           const browserProvider = new ethers.BrowserProvider(eip1193 as any)
 
@@ -35,12 +27,11 @@ export const useRainbowKitEthersSigner = () => {
             try {
               accounts = await (browserProvider as any).send?.('eth_accounts', [])
             } catch (innerError) {
-              console.warn('Unable to query accounts before getSigner', innerError)
+              // Silent failure
             }
           }
 
           if (!accounts || accounts.length === 0) {
-            console.log('No authorized accounts; skipping signer setup')
             setEthersSigner(undefined)
             setProvider(undefined)
             setEip1193Provider(undefined)
@@ -50,7 +41,6 @@ export const useRainbowKitEthersSigner = () => {
           const normalized = address.toLowerCase()
           const hasRequestedAddress = accounts.some((a) => a?.toLowerCase?.() === normalized)
           if (!hasRequestedAddress) {
-            console.log('Connected address not present in provider accounts; skipping signer setup')
             setEthersSigner(undefined)
             setProvider(undefined)
             setEip1193Provider(undefined)
@@ -58,17 +48,10 @@ export const useRainbowKitEthersSigner = () => {
           }
 
           const signer = await browserProvider.getSigner(address)
-          console.log('Ethers signer created successfully:', !!signer)
           setEthersSigner(signer)
           setProvider(browserProvider)
           setEip1193Provider(eip1193)
         } catch (error: any) {  
-          const code = error?.code
-          if (code === 4001 || code === -32001) {
-            console.warn('User rejected request or provider returned unknown error; clearing signer state', error)
-          } else {
-            console.error('Error creating ethers signer:', error)
-          }
           setEthersSigner(undefined)
           setProvider(undefined)
           setEip1193Provider(undefined)
@@ -76,7 +59,6 @@ export const useRainbowKitEthersSigner = () => {
       }
       setup()
     } else {
-      console.log('Clearing ethers signer - missing dependencies')
       setEthersSigner(undefined)
       setProvider(undefined)
       setEip1193Provider(undefined)
