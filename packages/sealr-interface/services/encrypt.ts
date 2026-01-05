@@ -47,7 +47,6 @@ export async function encryptChunksForContract(
       }
     });
   } catch (error) {
-    console.error('Error processing encryption batches:', error);
     throw error;
   }
 

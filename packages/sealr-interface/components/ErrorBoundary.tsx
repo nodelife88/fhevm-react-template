@@ -26,12 +26,9 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
     if (error.message.includes("eth_getFilterChanges") || 
         error.message.includes("filter not found") ||
         error.message.includes("Missing or invalid parameters")) {
-      console.warn("RPC Filter Error caught by ErrorBoundary:", error)
       this.setState({ hasError: false, error: undefined })
       return
     }
-    
-    console.error("ErrorBoundary caught an error:", error, errorInfo)
   }
 
   resetError = () => {

@@ -63,7 +63,6 @@ const CreateGroupModal: React.FC<CreateGroupModalProps> = ({ isOpen, onClose }) 
         onClose()
       }
     } catch (error) {
-      console.error("Failed to create group:", error)
     } finally {
       setIsCreating(false)
     }

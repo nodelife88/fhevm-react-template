@@ -14,10 +14,8 @@ export const RPC_CONFIG = {
 
 export function getBestWebSocketUrl(): string {
   if (process.env.NEXT_PUBLIC_SEPOLIA_WS_URL) {
-    console.log("Using WebSocket URL from env:", process.env.NEXT_PUBLIC_SEPOLIA_WS_URL);
     return process.env.NEXT_PUBLIC_SEPOLIA_WS_URL;
   }
   
-  console.log("Using default WebSocket URL:", RPC_CONFIG.SEPOLIA_WS_URL);
   return RPC_CONFIG.SEPOLIA_WS_URL;
 }

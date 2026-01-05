@@ -16,7 +16,7 @@ function clearAppState() {
     useFHESealrLoginStore.getState().clearState()
     useFHESealrConversationStore.getState().clearState()
   } catch (error) {
-    console.error("Error clearing app state:", error)
+    // Silent failure
   }
 }
 
@@ -39,7 +39,6 @@ export function useDisconnect() {
         await wagmiDisconnect()
         router.push("/")
       } catch (error) {
-        console.error("Error during disconnect:", error)
         if (typeof window !== "undefined") {
           window.location.href = "/"
         }
