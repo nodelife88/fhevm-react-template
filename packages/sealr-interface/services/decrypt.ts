@@ -81,20 +81,10 @@ export async function decryptHandles(
     }
   }
 
-  const BATCH_SIZE = 10;
-  const batches: { handle: string; contractAddress: `0x${string}` }[][] = [];
-  
-  for (let i = 0; i < misses.length; i += BATCH_SIZE) {
-    batches.push(misses.slice(i, i + BATCH_SIZE));
-  }
-  const batchPromises = batches.map(async (batch) => {
-    if (batch.length === 0) {
-      return {};
-    }
-    
+  if (misses.length > 0) {
     try {
       const decrypted = await fheInstance.userDecrypt(
-        batch,
+        misses,
         sig.privateKey,
         sig.publicKey,
         sig.signature,
@@ -104,24 +94,15 @@ export async function decryptHandles(
         sig.durationDays
       );
 
-      return decrypted as Record<string, string>;
-    } catch (error) {
-      console.error(`Failed to decrypt batch of ${batch.length} handles`, error);
-      return {};
-    }
-  });
-
-  try {
-    const batchResults = await Promise.all(batchPromises);
-    batchResults.forEach(batchResult => {
-      Object.entries(batchResult).forEach(([handle, plaintext]) => {
+      Object.entries(decrypted).forEach(([handle, plaintext]) => {
         conversationCache.set(handle, String(plaintext));
         results[handle] = String(plaintext);
       });
-    });
-    void persistConversationCache(cacheKey, conversationCache);
-  } catch (error) {
-    console.error('Error processing decryption batches:', error);
+      
+      void persistConversationCache(cacheKey, conversationCache);
+    } catch (error) {
+      console.error(`Failed to decrypt ${misses.length} handles`, error);
+    }
   }
 
   return results;
