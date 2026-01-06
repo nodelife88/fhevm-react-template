@@ -267,6 +267,33 @@ const ChatMessages: React.FC = () => {
     }
   }, [activeConversation, ethersSigner, contractAddress, fheInstance, visibleCount])
 
+  // Polling fallback to ensure new messages appear automatically
+  useEffect(() => {
+    if (!activeConversation?.id || !ethersSigner || !contractAddress || !fheInstance) return
+
+    const interval = setInterval(async () => {
+      try {
+        const encryptMessages = await fetchActiveMessages(Number(activeConversation.id))
+
+        if (encryptMessages && encryptMessages.length > 0) {
+          const sorted = [...encryptMessages].sort((a: any, b: any) => Number(a[3]) - Number(b[3]))
+          const sliceStart = Math.max(0, sorted.length - visibleCount)
+          const toDecrypt = sorted.slice(sliceStart)
+          const decryptMessage = await decryptMessages(toDecrypt)
+
+          if (decryptMessage !== null) {
+            setDecryptionError(false)
+            setActiveMessages(decryptMessage)
+          }
+        }
+      } catch (error) {
+        console.error("Error polling messages:", error)
+      }
+    }, 5000)
+
+    return () => clearInterval(interval)
+  }, [activeConversation?.id, ethersSigner, contractAddress, fheInstance, visibleCount])
+
   useEffect(() => {
     if (!contractTx || !address) return
 

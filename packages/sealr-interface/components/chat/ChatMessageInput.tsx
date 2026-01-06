@@ -16,10 +16,12 @@ const ChatMessageInput: React.FC = () => {
 
   const { ethersSigner, address } = useRainbowKitEthersSigner()
   const { fheInstance, contractAddress } = useFHESealrStore()
-  const { getActiveConversation, getActiveMessages, setIsSendingMessage, sendMessage, setActiveMessages, sendingStatus, setSendingStatus } =
+  const { getActiveConversation, getActiveMessages, setIsSendingMessage, sendMessage, setActiveMessages, sendingStatus, setSendingStatus, activeConversation } =
     useFHESealrConversationStore()
   
   const isSendingMessage = useFHESealrConversationStore(state => state.isSendingMessage)
+  
+  const hasActiveConversation = activeConversation?.id != null
 
   const getStatusText = (status: SendingStatus): string => {
     switch (status) {
@@ -42,8 +44,7 @@ const ChatMessageInput: React.FC = () => {
       return
     }
 
-    const activeConversation = getActiveConversation()
-    if (!activeConversation?.id) {
+    if (!hasActiveConversation) {
       console.error("Cannot send message - no active conversation selected")
       return
     }
@@ -106,11 +107,17 @@ const ChatMessageInput: React.FC = () => {
             onKeyDown={(e) => {
               if (e.key === "Enter" && !e.shiftKey) {
                 e.preventDefault()
-                if (value.trim() && !isSendingMessage) handleSubmit(value)
+                if (value.trim() && !isSendingMessage && hasActiveConversation) handleSubmit(value)
               }
             }}
-            placeholder={isSendingMessage ? getStatusText(sendingStatus) : "Type your message..."}
-            disabled={isSendingMessage}
+            placeholder={
+              !hasActiveConversation 
+                ? "Select a conversation to start chatting..." 
+                : isSendingMessage 
+                  ? getStatusText(sendingStatus) 
+                  : "Type your message..."
+            }
+            disabled={isSendingMessage || !hasActiveConversation}
             rows={1}
             className={`w-full min-h-[48px] max-h-32 px-4 py-3.5 bg-background/80 border-2 ${
               isFocused ? "border-primary/50" : "border-input"
@@ -123,11 +130,17 @@ const ChatMessageInput: React.FC = () => {
         </div>
 
         <Button
-          onClick={() => value.trim() && handleSubmit(value)}
-          disabled={!value.trim() || isSendingMessage}
+          onClick={() => value.trim() && hasActiveConversation && handleSubmit(value)}
+          disabled={!value.trim() || isSendingMessage || !hasActiveConversation}
           size="icon"
           className="h-12 w-12 shrink-0 rounded-xl shadow-lg hover:shadow-xl transition-all hover:scale-105 disabled:opacity-50 disabled:hover:scale-100"
-          title={isSendingMessage ? getStatusText(sendingStatus) : "Send message"}
+          title={
+            !hasActiveConversation 
+              ? "Select a conversation first" 
+              : isSendingMessage 
+                ? getStatusText(sendingStatus) 
+                : "Send message"
+          }
         >
           {isSendingMessage ? (
             <div className="h-5 w-5 animate-spin rounded-full border-2 border-current border-t-transparent" />

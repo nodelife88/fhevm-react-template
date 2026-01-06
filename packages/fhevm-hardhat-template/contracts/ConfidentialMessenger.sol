@@ -2,9 +2,9 @@
 pragma solidity ^0.8.24;
 
 import {FHE, euint256, externalEuint256} from "@fhevm/solidity/lib/FHE.sol";
-import {SepoliaConfig} from "@fhevm/solidity/config/ZamaConfig.sol";
+import { ZamaEthereumConfig } from "@fhevm/solidity/config/ZamaConfig.sol";
 
-contract ConfidentialMessenger is SepoliaConfig {
+contract ConfidentialMessenger is ZamaEthereumConfig {
     enum Status { SENT, DELIVERED, READ }
     enum ConversationType { DIRECT, GROUP }
 

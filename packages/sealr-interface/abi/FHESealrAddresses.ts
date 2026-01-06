@@ -6,7 +6,7 @@ export type SealrChainInfo = {
 
 export const FHESealrAddresses: Record<string, SealrChainInfo> = {
   "11155111": {
-    address: "0xd624aCFe99F64DEd22e3e6c5286E5bD4cB411A58",
+    address: "0x5e13F97A9Bb120FF32F1CD329d6f2CE71734aCa6",
     chainId: 11155111,
     chainName: "sepolia",
   }

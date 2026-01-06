@@ -88,28 +88,27 @@ export async function decryptHandles(
     batches.push(misses.slice(i, i + BATCH_SIZE));
   }
   const batchPromises = batches.map(async (batch) => {
-    const batchResults: Record<string, string> = {};
-    
-    for (const item of batch) {
-      try {
-        const decrypted = await fheInstance.userDecrypt(
-          [item],
-          sig.privateKey,
-          sig.publicKey,
-          sig.signature,
-          sig.contractAddresses,
-          sig.userAddress,
-          sig.startTimestamp,
-          sig.durationDays
-        );
-
-        Object.assign(batchResults, decrypted);
-      } catch (error) {
-        console.error(`Failed to decrypt handle ${item.handle}`, error);
-      }
+    if (batch.length === 0) {
+      return {};
     }
     
-    return batchResults;
+    try {
+      const decrypted = await fheInstance.userDecrypt(
+        batch,
+        sig.privateKey,
+        sig.publicKey,
+        sig.signature,
+        sig.contractAddresses,
+        sig.userAddress,
+        sig.startTimestamp,
+        sig.durationDays
+      );
+
+      return decrypted as Record<string, string>;
+    } catch (error) {
+      console.error(`Failed to decrypt batch of ${batch.length} handles`, error);
+      return {};
+    }
   });
 
   try {

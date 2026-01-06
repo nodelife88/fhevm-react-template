@@ -60,7 +60,7 @@
     "@vitest/browser-preview": "latest",
     "@vitest/browser-webdriverio": "latest",
     "@vitest/ui": "latest",
-    "@zama-fhe/relayer-sdk": "latest",
+    "@zama-fhe/relayer-sdk": "v0.3.0-5",
     "boring-avatars": "^2.0.1",
     "child_process": "latest",
     "class-variance-authority": "^0.7.1",
